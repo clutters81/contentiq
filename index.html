@@ -670,7 +670,12 @@ function saveSetup() {
 // WORKSPACES
 // ============================================================
 async function loadWorkspaces() {
-  const { data } = await sb.from('workspaces').select('*').order('created_at');
+  const { data, error } = await sb.from('workspaces').select('*').order('created_at');
+  if (error) {
+    document.getElementById('ws-name').textContent = 'Schema missing';
+    toast('⚠️ Database tables not found — run schema.sql in Supabase SQL Editor first', 'error');
+    return;
+  }
   state.workspaces = data || [];
   if (!state.workspaces.length) {
     await createWorkspace('My Business');
