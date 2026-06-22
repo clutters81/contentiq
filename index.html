@@ -1,0 +1,1495 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ContentIQ</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0f1115;--card:#171b22;--card2:#1e2430;--text:#f4f4f5;--muted:#71717a;
+  --accent:#f97316;--accent2:#fb923c;--line:#27272a;--success:#22c55e;--danger:#ef4444;
+  --sidebar:230px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',Arial,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:15px;line-height:1.6}
+
+/* SIDEBAR */
+#sidebar{width:var(--sidebar);background:var(--card);border-right:1px solid var(--line);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+.sb-brand{padding:20px 16px 10px;font-size:20px;font-weight:800;color:var(--accent);letter-spacing:-0.03em}
+.sb-brand span{color:var(--text)}
+.sb-workspace{padding:8px 12px;margin:0 8px 8px;background:var(--card2);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;position:relative;border:1px solid var(--line)}
+.sb-workspace strong{display:block;color:var(--text);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ws-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card2);border:1px solid var(--line);border-radius:10px;z-index:200;display:none;overflow:hidden}
+#ws-dropdown button{width:100%;text-align:left;padding:10px 14px;background:none;border:none;color:var(--text);font-size:13px;cursor:pointer}
+#ws-dropdown button:hover{background:var(--line)}
+#ws-dropdown button.add-ws{color:var(--accent);border-top:1px solid var(--line)}
+nav{flex:1;padding:4px 8px;overflow-y:auto}
+nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:500;transition:.15s}
+nav a:hover{color:var(--text);background:var(--card2)}
+nav a.active{color:var(--text);background:var(--card2)}
+nav a .icon{font-size:16px;width:20px;text-align:center}
+.nav-section{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted);padding:12px 12px 4px;text-transform:uppercase}
+.sb-bottom{padding:12px 8px;border-top:1px solid var(--line)}
+.sb-bottom a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:var(--muted);text-decoration:none;font-size:13.5px;cursor:pointer}
+.sb-bottom a:hover{color:var(--text);background:var(--card2)}
+
+/* MAIN */
+#main{margin-left:var(--sidebar);flex:1;min-height:100vh;display:flex;flex-direction:column}
+.topbar{padding:16px 32px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--card)}
+.topbar h1{font-size:20px;font-weight:700;letter-spacing:-0.02em}
+#content{padding:28px 32px;flex:1;max-width:920px}
+
+/* COMPONENTS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:.15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:6px 14px;font-size:13px}
+.btn-danger{background:var(--danger);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px}
+.card h2{font-size:16px;font-weight:700;margin-bottom:3px}
+.card .meta{font-size:13px;color:var(--muted);margin-bottom:16px}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;font-weight:500}
+input,textarea,select{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 13px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:.15s}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:90px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.field{margin-bottom:14px}
+.tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.tag-draft{background:#3f3f46;color:#d4d4d8}
+.tag-approved{background:#14532d;color:var(--success)}
+.tag-archived{background:#27272a;color:var(--muted)}
+.divider{border:none;border-top:1px solid var(--line);margin:20px 0}
+.empty{text-align:center;padding:50px 0;color:var(--muted)}
+.empty .icon{font-size:40px;margin-bottom:10px}
+.warn-box{background:#431407;border:1px solid #9a3412;border-radius:10px;padding:11px 15px;margin-bottom:14px;font-size:13.5px;color:#fdba74}
+
+/* STAGE SELECTOR */
+.stage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stage-btn{padding:14px;background:var(--card2);border:2px solid var(--line);border-radius:12px;cursor:pointer;text-align:center;transition:.15s}
+.stage-btn:hover{border-color:var(--accent)}
+.stage-btn.active{border-color:var(--accent);background:#431407}
+.stage-btn .stage-icon{font-size:24px;margin-bottom:4px}
+.stage-btn h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.stage-btn p{font-size:11px;color:var(--muted)}
+
+/* OUTPUT BLOCK */
+.output-block{background:#09090b;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px;margin-top:10px}
+.output-block h4{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.output-block pre{white-space:pre-wrap;font-family:inherit;font-size:14px;color:#e4e4e7;line-height:1.75}
+.copy-btn{margin-top:8px;padding:4px 12px;background:var(--card2);border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer}
+.copy-btn:hover{color:var(--text)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--card2);padding:4px;border-radius:11px;margin-bottom:20px}
+.tab{flex:1;text-align:center;padding:7px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:none;transition:.15s}
+.tab.active{background:var(--card);color:var(--text)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.stat .num{font-size:26px;font-weight:800;color:var(--accent)}
+.stat .lbl{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* HISTORY LIST */
+.post-item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px}
+.post-item .body{flex:1;min-width:0}
+.post-item h3{font-size:14px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.post-item .info{font-size:12px;color:var(--muted)}
+.post-item .actions{display:flex;gap:7px;flex-shrink:0}
+
+/* REPURPOSE */
+.format-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.format-check{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card2);border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:13.5px;transition:.15s}
+.format-check:hover{border-color:var(--accent)}
+.format-check input{width:auto;cursor:pointer}
+.format-check.selected{border-color:var(--accent)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:18px;font-weight:800;margin-bottom:5px}
+.modal .sub{font-size:14px;color:var(--muted);margin-bottom:20px}
+.modal-footer{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast-item{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-size:14px;animation:fadeIn .2s ease}
+.toast-item.success{border-color:var(--success);color:var(--success)}
+.toast-item.error{border-color:var(--danger);color:var(--danger)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* SPINNER */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SETUP */
+#setup-view{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:32px}
+.setup-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:36px;width:520px;max-width:100%}
+.setup-card h1{font-size:26px;font-weight:800;letter-spacing:-0.03em;margin-bottom:5px}
+.setup-card .sub{color:var(--muted);margin-bottom:24px;font-size:14px}
+.setup-step{background:var(--card2);border-radius:12px;padding:14px;margin-bottom:10px}
+.setup-step .num{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;margin-bottom:6px}
+.setup-step h3{font-size:13.5px;font-weight:700;margin-bottom:3px}
+.setup-step p{font-size:12.5px;color:var(--muted)}
+
+/* INSIGHT CARDS */
+.insight-card{background:var(--card2);border-radius:12px;padding:14px;margin-bottom:10px}
+.insight-card h4{font-size:13px;font-weight:700;margin-bottom:5px;color:var(--accent)}
+.insight-card p{font-size:13.5px;color:var(--text);line-height:1.65}
+
+/* C3 BANNER */
+.c3-banner{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.c3-stage{text-align:center;flex:1}
+.c3-stage .c3-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.c3-stage .c3-name{font-size:14px;font-weight:700;color:var(--text)}
+.c3-arrow{color:var(--accent);font-size:18px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- SETUP VIEW -->
+<div id="setup-view" style="display:none;width:100%">
+  <div class="setup-card">
+    <div style="font-size:28px;margin-bottom:10px">⚡</div>
+    <h1>ContentIQ</h1>
+    <p class="sub">AI-powered content creation built on the Hybrid Content Ecosystem framework. Connect your database to get started.</p>
+    <div class="setup-step"><div class="num">1</div><h3>Create a free Supabase project</h3><p>Go to supabase.com → New project. Copy your URL and anon key from Settings → API.</p></div>
+    <div class="setup-step"><div class="num">2</div><h3>Run the database schema</h3><p>In Supabase → SQL Editor, paste and run <strong>schema.sql</strong> from this folder.</p></div>
+    <div class="setup-step"><div class="num">3</div><h3>Enter credentials below</h3><p>Saved in your browser. Claude API key stays on the Vercel server.</p></div>
+    <div class="field" style="margin-top:18px"><label>Supabase Project URL</label><input id="setup-url" placeholder="https://xxxx.supabase.co" type="url"></div>
+    <div class="field"><label>Supabase Anon Key</label><input id="setup-key" placeholder="eyJhbGc…" type="password"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="saveSetup()">Save & Launch →</button>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center">Claude API key is set as a Vercel environment variable — never in the browser.</p>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell" style="display:none;width:100%;display:flex">
+
+<div id="sidebar">
+  <div class="sb-brand">Content<span>IQ</span></div>
+  <div class="sb-workspace" onclick="toggleWsDropdown()">
+    <div style="font-size:10px;color:var(--muted);margin-bottom:1px;letter-spacing:.05em">WORKSPACE</div>
+    <strong id="ws-name">Loading…</strong>
+    <div id="ws-dropdown">
+      <div id="ws-list"></div>
+      <button class="add-ws" onclick="openNewWsModal();event.stopPropagation()">+ New workspace</button>
+    </div>
+  </div>
+  <nav>
+    <a href="#/" class="nav-link" data-view="dashboard"><span class="icon">📊</span> Dashboard</a>
+    <a href="#/brand" class="nav-link" data-view="brand"><span class="icon">🏷️</span> Brand Hub</a>
+    <div class="nav-section">Create</div>
+    <a href="#/generate" class="nav-link" data-view="generate"><span class="icon">✍️</span> Generate Content</a>
+    <a href="#/power" class="nav-link" data-view="power"><span class="icon">⚡</span> Power Content</a>
+    <a href="#/repurpose" class="nav-link" data-view="repurpose"><span class="icon">♻️</span> Repurpose Engine</a>
+    <div class="nav-section">Review</div>
+    <a href="#/scanner" class="nav-link" data-view="scanner"><span class="icon">🔬</span> Social Scanner</a>
+    <a href="#/history" class="nav-link" data-view="history"><span class="icon">📂</span> Post History</a>
+  </nav>
+  <div class="sb-bottom">
+    <a onclick="showView('settings')"><span class="icon">⚙️</span> Settings</a>
+  </div>
+</div>
+
+<div id="main">
+  <div class="topbar">
+    <h1 id="page-title">Dashboard</h1>
+    <div id="topbar-actions"></div>
+  </div>
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div id="view-dashboard" class="view">
+      <div class="stats" id="dash-stats">
+        <div class="stat"><div class="num" id="stat-total">–</div><div class="lbl">Posts created</div></div>
+        <div class="stat"><div class="num" id="stat-approved">–</div><div class="lbl">Approved</div></div>
+        <div class="stat"><div class="num" id="stat-draft">–</div><div class="lbl">Drafts</div></div>
+        <div class="stat"><div class="num" id="stat-scans">–</div><div class="lbl">Scans run</div></div>
+      </div>
+      <div class="c3-banner">
+        <div class="c3-stage"><div class="c3-label">Stage 1</div><div class="c3-name">📢 Awareness</div></div>
+        <div class="c3-arrow">→</div>
+        <div class="c3-stage"><div class="c3-label">Stage 2</div><div class="c3-name">🔍 Information</div></div>
+        <div class="c3-arrow">→</div>
+        <div class="c3-stage"><div class="c3-label">Stage 3</div><div class="c3-name">🎯 Action</div></div>
+        <div class="c3-arrow" style="color:var(--muted)">→</div>
+        <div class="c3-stage"><div class="c3-label">Result</div><div class="c3-name">💬 Conversations</div></div>
+        <div class="c3-arrow" style="color:var(--muted)">→</div>
+        <div class="c3-stage"><div class="c3-label">Goal</div><div class="c3-name">📅 Consultations</div></div>
+      </div>
+      <div class="card">
+        <h2>Quick create</h2>
+        <p class="meta">Jump straight into content for your active workspace</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="showView('generate')">✍️ Write a post</button>
+          <button class="btn btn-ghost" onclick="showView('power')">⚡ Power content script</button>
+          <button class="btn btn-ghost" onclick="showView('repurpose')">♻️ Repurpose content</button>
+          <button class="btn btn-ghost" onclick="showView('scanner')">🔬 Scan social posts</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Recent posts</h2>
+        <div id="dash-recent"></div>
+      </div>
+    </div>
+
+    <!-- BRAND HUB -->
+    <div id="view-brand" class="view" style="display:none">
+      <div class="card">
+        <h2>Brand document</h2>
+        <p class="meta">Paste your brand guide, tone of voice, audience description, or any business notes. ContentIQ extracts your Ideal Client Profile and uses it in every piece of content.</p>
+        <div class="field">
+          <label>Paste your brand document</label>
+          <textarea id="brand-raw" rows="10" placeholder="Paste your brand guide here — who you help, their problems, your offer, tone of voice, content pillars, competitors, what makes you different, client pain points, desired outcomes…"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="extractBrand()">
+          <span id="brand-btn-text">🔍 Extract & save brand profile</span>
+          <span id="brand-spinner" style="display:none" class="spinner"></span>
+        </button>
+      </div>
+      <div id="brand-profile" style="display:none">
+        <div class="card">
+          <h2>Brand profile <span style="font-size:13px;color:var(--success);font-weight:500">✓ Saved</span></h2>
+          <p class="meta">ContentIQ uses this as the foundation for every piece of content. Re-extract anytime by updating the brand doc above.</p>
+          <div class="row">
+            <div class="field"><label>Business name</label><input id="b-name" type="text"></div>
+            <div class="field"><label>Tagline / positioning</label><input id="b-tagline" type="text"></div>
+          </div>
+          <div class="field"><label>Ideal Client Profile (ICP) — who exactly you serve</label><textarea id="b-audience" rows="3"></textarea></div>
+          <div class="row">
+            <div class="field"><label>Tone of voice</label><input id="b-tone" type="text" placeholder="e.g. direct, warm, no-nonsense, British"></div>
+            <div class="field"><label>Primary CTA goal</label><input id="b-cta" type="text" placeholder="e.g. book a free consultation call"></div>
+          </div>
+          <div class="field"><label>Content pillars (comma-separated)</label><input id="b-pillars" type="text" placeholder="e.g. Awareness, Results, Method, Action"></div>
+          <div class="field"><label>Core client pain points (one per line)</label><textarea id="b-pain" rows="3"></textarea></div>
+          <div class="field"><label>Client buying triggers — what pushes them to act</label><textarea id="b-triggers" rows="2" placeholder="e.g. clothes not fitting, doctor warning, upcoming holiday, low energy"></textarea></div>
+          <div class="field"><label>Competitors / what makes you different</label><textarea id="b-comp" rows="2"></textarea></div>
+          <button class="btn btn-ghost btn-sm" onclick="saveBrandProfile()">Save edits</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERATE CONTENT -->
+    <div id="view-generate" class="view" style="display:none">
+      <div id="no-brand-warn" class="warn-box" style="display:none">
+        ⚠️ No brand profile saved. <a href="#/brand" onclick="showView('brand')" style="color:var(--accent)">Set one up first →</a>
+      </div>
+
+      <!-- Stage selector -->
+      <div class="stage-grid">
+        <div class="stage-btn active" id="stage-btn-awareness" onclick="selectStage('awareness')">
+          <div class="stage-icon">📢</div>
+          <h4>Awareness</h4>
+          <p>Attract new people. Build belief they can change.</p>
+        </div>
+        <div class="stage-btn" id="stage-btn-information" onclick="selectStage('information')">
+          <div class="stage-icon">🔍</div>
+          <h4>Information</h4>
+          <p>Build trust. Show proof. Explain your method.</p>
+        </div>
+        <div class="stage-btn" id="stage-btn-action" onclick="selectStage('action')">
+          <div class="stage-icon">🎯</div>
+          <h4>Action</h4>
+          <p>Start conversations. Invite consultation bookings.</p>
+        </div>
+      </div>
+
+      <!-- Awareness sub-types -->
+      <div id="sub-awareness" class="card">
+        <h2>Awareness content</h2>
+        <p class="meta">Attracts new people who haven't heard of you yet. Goal: make them think "that's exactly my situation."</p>
+        <div class="field">
+          <label>Specific problem or struggle to focus on</label>
+          <input id="aw-problem" type="text" placeholder="e.g. struggling with consistency, nothing seems to work after 40, no time to exercise">
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Content format</label>
+            <select id="aw-format">
+              <option value="post">Awareness post (Facebook/Instagram)</option>
+              <option value="video-script">Short-form video script (60-90 sec)</option>
+              <option value="hook-list">5 scroll-stopping hook options</option>
+              <option value="myth">Myth-busting post</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Primary platform</label>
+            <select id="aw-platform">
+              <option>Facebook</option>
+              <option>Instagram</option>
+              <option>TikTok</option>
+              <option>LinkedIn</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>CTA keyword (word they comment or DM)</label>
+          <input id="aw-cta-word" type="text" placeholder="e.g. START, INFO, RESET, PLAN" value="INFO">
+        </div>
+        <button class="btn btn-primary" onclick="generateAwareness()">
+          📢 Generate awareness content
+          <span id="aw-spinner" style="display:none" class="spinner"></span>
+        </button>
+      </div>
+
+      <!-- Information sub-types -->
+      <div id="sub-information" class="card" style="display:none">
+        <h2>Information content</h2>
+        <p class="meta">For people already aware of you — researching and comparing options. Goal: build trust and reduce uncertainty.</p>
+        <div class="field">
+          <label>Information content type</label>
+          <select id="info-type" onchange="updateInfoFields()">
+            <option value="results">Client result / case study</option>
+            <option value="method">Method content (explains your approach)</option>
+            <option value="shopwindow">Shop window / behind-the-scenes</option>
+          </select>
+        </div>
+        <div id="info-results-fields">
+          <div class="row">
+            <div class="field"><label>Client name (or alias)</label><input id="info-client-name" placeholder="e.g. Sarah, a client of ours…"></div>
+            <div class="field"><label>Result achieved</label><input id="info-result" placeholder="e.g. lost 8kg in 12 weeks"></div>
+          </div>
+          <div class="field"><label>Their situation before (struggles, past failures)</label><textarea id="info-before" rows="2" placeholder="e.g. busy mum, had tried multiple diets, kept starting and stopping"></textarea></div>
+        </div>
+        <div id="info-method-fields" style="display:none">
+          <div class="field"><label>Method / pillar to explain</label><select id="info-pillar">
+            <option>Workout approach (e.g. strength training vs cardio)</option>
+            <option>Nutrition strategy (e.g. no restrictive dieting)</option>
+            <option>Accountability and coaching support</option>
+            <option>Community and environment</option>
+            <option>Custom approach or key differentiator</option>
+          </select></div>
+          <div class="field"><label>Common misconception your audience has about this</label><input id="info-myth" placeholder="e.g. they think they need to do hours of cardio"></div>
+        </div>
+        <div id="info-shopwindow-fields" style="display:none">
+          <div class="field"><label>What to show / behind the scenes angle</label><select id="info-sw">
+            <option>What happens in a first session</option>
+            <option>A typical coaching session</option>
+            <option>The gym community / group atmosphere</option>
+            <option>A day in the life of a coach</option>
+            <option>Client check-in / milestone celebration</option>
+          </select></div>
+        </div>
+        <div class="field" style="margin-top:4px">
+          <label>Platform</label>
+          <select id="info-platform">
+            <option>Facebook</option><option>Instagram</option><option>LinkedIn</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="generateInformation()">
+          🔍 Generate information content
+          <span id="info-spinner" style="display:none" class="spinner"></span>
+        </button>
+      </div>
+
+      <!-- Action sub-types -->
+      <div id="sub-action" class="card" style="display:none">
+        <h2>Action content</h2>
+        <p class="meta">For warm prospects ready to move. Goal: start a conversation — get a comment, DM, or consultation booking.</p>
+        <div class="field">
+          <label>Action content type</label>
+          <select id="act-type">
+            <option value="two-step">Two-step post (comment to get something)</option>
+            <option value="poll">Story poll idea (Instagram/Facebook)</option>
+            <option value="offer">Direct offer post (consultation invitation)</option>
+            <option value="dm-script">DM response script (reply to enquiries)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>What do you want them to do?</label>
+          <input id="act-goal" placeholder="e.g. book a free body transformation consultation" value="book a free consultation call">
+        </div>
+        <div class="field">
+          <label>Keyword / comment trigger</label>
+          <input id="act-keyword" placeholder="e.g. READY, START, PLAN, CONSULT" value="CONSULT">
+        </div>
+        <button class="btn btn-primary" onclick="generateAction()">
+          🎯 Generate action content
+          <span id="act-spinner" style="display:none" class="spinner"></span>
+        </button>
+      </div>
+
+      <!-- Output -->
+      <div id="gen-output" style="display:none">
+        <div id="gen-output-blocks"></div>
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="approvePost('generate')">✓ Approve & save</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveAsDraft('generate')">Save as draft</button>
+          <button class="btn btn-ghost btn-sm" onclick="regenCurrent()">↺ Regenerate</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- POWER CONTENT -->
+    <div id="view-power" class="view" style="display:none">
+      <div class="card">
+        <h2>⚡ Power content studio</h2>
+        <p class="meta">Direct-response short-form video scripts designed to stop the scroll and drive one action — a booking, DM, or click. Uses the Hook → Problem → Insight → Solution → Soft Close framework.</p>
+        <div class="field">
+          <label>Specific pain point or problem to open with</label>
+          <input id="pow-pain" type="text" placeholder="e.g. can't stay consistent, tried every diet but weight comes back">
+        </div>
+        <div class="field">
+          <label>The insight (why they've been failing — the real reason)</label>
+          <input id="pow-insight" type="text" placeholder="e.g. they're doing the wrong type of training for their body and schedule">
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Desired action (CTA)</label>
+            <input id="pow-cta" type="text" placeholder="e.g. comment INFO, DM us, book a free call">
+          </div>
+          <div class="field">
+            <label>Platform</label>
+            <select id="pow-platform">
+              <option>Instagram Reel</option>
+              <option>Facebook Reel</option>
+              <option>TikTok</option>
+              <option>YouTube Short</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Video length</label>
+            <select id="pow-length">
+              <option value="30">30 seconds</option>
+              <option value="60" selected>60 seconds</option>
+              <option value="90">90 seconds</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Hook style</label>
+            <select id="pow-hook">
+              <option value="bold-claim">Bold claim</option>
+              <option value="question">Provocative question</option>
+              <option value="if-you">If you… (audience identifier)</option>
+              <option value="myth">Myth buster</option>
+              <option value="stat">Number / stat hook</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="generatePower()">
+          ⚡ Generate power script
+          <span id="pow-spinner" style="display:none" class="spinner"></span>
+        </button>
+      </div>
+      <div id="pow-output" style="display:none">
+        <div id="pow-output-blocks"></div>
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="approvePost('power')">✓ Approve & save</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveAsDraft('power')">Save as draft</button>
+          <button class="btn btn-ghost btn-sm" onclick="generatePower()">↺ Regenerate</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPURPOSE ENGINE -->
+    <div id="view-repurpose" class="view" style="display:none">
+      <div class="card">
+        <h2>♻️ Repurpose engine</h2>
+        <p class="meta">Take one piece of content — a topic, a script, or an existing post — and turn it into every format you need across every platform. One idea, maximum reach.</p>
+        <div class="field">
+          <label>Source content (paste an existing post, script, or just describe the topic/angle)</label>
+          <textarea id="rep-source" rows="6" placeholder="Paste your original post or script here, OR just describe the topic and angle…&#10;&#10;e.g. 'Why most women over 40 struggle to lose weight — it's not about willpower, it's about having the wrong plan. Our coaching gives them structure, accountability, and a plan that fits their life.'"></textarea>
+        </div>
+        <div class="field">
+          <label>Buyer stage this content targets</label>
+          <select id="rep-stage">
+            <option value="awareness">Awareness — attract new people</option>
+            <option value="information">Information — build trust and credibility</option>
+            <option value="action">Action — drive conversation / booking</option>
+          </select>
+        </div>
+        <div class="field"><label>Select formats to generate</label></div>
+        <div class="format-grid" id="format-grid">
+          <label class="format-check selected"><input type="checkbox" value="facebook" checked> 📘 Facebook post</label>
+          <label class="format-check selected"><input type="checkbox" value="instagram" checked> 📸 Instagram caption</label>
+          <label class="format-check selected"><input type="checkbox" value="reel-script" checked> 🎬 Reel / Short script (60 sec)</label>
+          <label class="format-check selected"><input type="checkbox" value="email" checked> 📧 Email newsletter version</label>
+          <label class="format-check"><input type="checkbox" value="linkedin"> 💼 LinkedIn thought leadership</label>
+          <label class="format-check"><input type="checkbox" value="hooks"> 🪝 5 scroll-stopping hooks</label>
+          <label class="format-check"><input type="checkbox" value="story-poll"> 📊 Story poll idea</label>
+          <label class="format-check"><input type="checkbox" value="two-step"> 💬 Two-step comment post</label>
+        </div>
+        <button class="btn btn-primary" onclick="generateRepurpose()">
+          ♻️ Repurpose content
+          <span id="rep-spinner" style="display:none" class="spinner"></span>
+        </button>
+      </div>
+      <div id="rep-output" style="display:none">
+        <div id="rep-output-blocks"></div>
+        <div style="display:flex;gap:10px;margin-top:14px">
+          <button class="btn btn-primary btn-sm" onclick="approvePost('repurpose')">✓ Approve & save all</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveAsDraft('repurpose')">Save as draft</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOCIAL SCANNER -->
+    <div id="view-scanner" class="view" style="display:none">
+      <div class="card">
+        <h2>🔬 Social scanner</h2>
+        <p class="meta">Paste your posts with engagement data. ContentIQ identifies your top performers, winning hooks, and tells you exactly what to create more of — based on what your audience actually responds to.</p>
+        <div class="tabs">
+          <button class="tab active" onclick="switchScanTab(this,'scan-input')">Paste & analyse</button>
+          <button class="tab" onclick="switchScanTab(this,'scan-history')">Past analyses</button>
+        </div>
+        <div id="scan-input">
+          <div class="field">
+            <label>Paste your posts — include caption text and engagement numbers. Separate posts with a blank line.</label>
+            <textarea id="scan-posts" rows="12" placeholder="Example format:
+
+15 Jun — Likes: 84, Comments: 12, Shares: 6, Reach: 1,240
+Why most women over 40 struggle to lose weight — and it's not your fault...
+
+---
+
+10 Jun — Likes: 18, Comments: 2, Shares: 1, Reach: 310
+Gym tip of the week: make sure you're hitting protein targets..."></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="runScanner()">
+            🔬 Analyse posts
+            <span id="scan-spinner" style="display:none" class="spinner"></span>
+          </button>
+          <div id="scan-output" style="display:none;margin-top:20px"></div>
+        </div>
+        <div id="scan-history" style="display:none">
+          <div id="scan-history-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="view-history" class="view" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+        <div style="flex:1"><input id="history-search" type="text" placeholder="Search posts…" oninput="renderHistory()"></div>
+        <select id="history-filter" onchange="renderHistory()" style="width:160px">
+          <option value="">All statuses</option>
+          <option value="draft">Draft</option>
+          <option value="approved">Approved</option>
+          <option value="archived">Archived</option>
+        </select>
+        <select id="history-stage" onchange="renderHistory()" style="width:160px">
+          <option value="">All stages</option>
+          <option value="awareness">Awareness</option>
+          <option value="information">Information</option>
+          <option value="action">Action</option>
+          <option value="power">Power</option>
+          <option value="repurpose">Repurposed</option>
+        </select>
+      </div>
+      <div id="history-list"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="view-settings" class="view" style="display:none">
+      <div class="card">
+        <h2>Database connection</h2>
+        <p class="meta">Update your Supabase credentials.</p>
+        <div class="field"><label>Supabase URL</label><input id="set-url" type="url"></div>
+        <div class="field"><label>Supabase Anon Key</label><input id="set-key" type="password"></div>
+        <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save connection</button>
+      </div>
+      <div class="card">
+        <h2>Workspaces</h2>
+        <div id="settings-ws-list"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="openNewWsModal()">+ New workspace</button>
+      </div>
+      <div class="card">
+        <h2>About ContentIQ</h2>
+        <p class="meta">Built on the Hybrid Content Ecosystem — the C³ Method (Content → Conversations → Consultations). Content is structured across 3 buyer stages: Awareness, Information, Action.</p>
+        <p class="meta" style="margin-top:8px">To activate AI generation: set <code style="background:var(--card2);padding:2px 6px;border-radius:5px">ANTHROPIC_API_KEY</code> as a Vercel environment variable.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()"><div id="modal-body"></div></div>
+</div>
+
+<!-- POST DETAIL MODAL -->
+<div id="post-modal" class="modal-overlay" style="display:none">
+  <div class="modal" style="width:700px">
+    <div id="post-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('post-modal').style.display='none'">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let sb = null;
+let state = {
+  workspaceId: null, workspaceName: null, workspaces: [],
+  brandDoc: null, posts: [], scans: [],
+  lastGenerated: null, lastPower: null, lastRepurpose: null,
+  currentStage: 'awareness', currentRegen: null,
+};
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  const url = localStorage.getItem('sq_url');
+  const key = localStorage.getItem('sq_key');
+  if (!url || !key) {
+    document.getElementById('setup-view').style.display = 'flex';
+    document.getElementById('app-shell').style.display = 'none';
+    return;
+  }
+  document.getElementById('setup-view').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'flex';
+  sb = supabase.createClient(url, key);
+  await loadWorkspaces();
+  setupRouter();
+}
+
+function saveSetup() {
+  const url = document.getElementById('setup-url').value.trim();
+  const key = document.getElementById('setup-key').value.trim();
+  if (!url || !key) return toast('Enter both fields', 'error');
+  localStorage.setItem('sq_url', url);
+  localStorage.setItem('sq_key', key);
+  init();
+}
+
+// ============================================================
+// WORKSPACES
+// ============================================================
+async function loadWorkspaces() {
+  const { data } = await sb.from('workspaces').select('*').order('created_at');
+  state.workspaces = data || [];
+  if (!state.workspaces.length) {
+    await createWorkspace('My Business');
+  } else {
+    const savedId = localStorage.getItem('ws_id');
+    const ws = state.workspaces.find(w => w.id === savedId) || state.workspaces[0];
+    await selectWorkspace(ws.id, ws.name);
+  }
+  renderWsList(); renderSettingsWsList();
+}
+
+async function createWorkspace(name) {
+  const { data } = await sb.from('workspaces').insert({ name }).select().single();
+  if (data) { state.workspaces.push(data); await selectWorkspace(data.id, data.name); renderWsList(); renderSettingsWsList(); }
+}
+
+async function selectWorkspace(id, name) {
+  state.workspaceId = id; state.workspaceName = name;
+  localStorage.setItem('ws_id', id);
+  document.getElementById('ws-name').textContent = name;
+  await loadBrandDoc(); await loadPosts(); await loadScans();
+  refreshDashboard();
+}
+
+function renderWsList() {
+  const el = document.getElementById('ws-list');
+  el.innerHTML = state.workspaces.map(w =>
+    `<button onclick="selectWorkspace('${w.id}','${esc(w.name)}');toggleWsDropdown()">${w.name}</button>`
+  ).join('');
+}
+
+function toggleWsDropdown() {
+  const d = document.getElementById('ws-dropdown');
+  d.style.display = d.style.display === 'block' ? 'none' : 'block';
+}
+
+function openNewWsModal() {
+  document.getElementById('ws-dropdown').style.display = 'none';
+  showModal(`<h2>New workspace</h2><p class="sub">Each workspace is a separate business or client.</p>
+    <div class="field"><label>Business name</label><input id="new-ws-name" type="text" placeholder="e.g. Paul's PT Studio"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitNewWs()">Create</button>
+    </div>`);
+}
+
+async function submitNewWs() {
+  const name = document.getElementById('new-ws-name').value.trim();
+  if (!name) return;
+  await createWorkspace(name); closeModal(); toast('Workspace created', 'success');
+}
+
+function renderSettingsWsList() {
+  const el = document.getElementById('settings-ws-list');
+  if (!el) return;
+  el.innerHTML = state.workspaces.map(w => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)">
+      <span style="font-size:14px">${w.name}</span>
+      <button class="btn btn-ghost btn-sm" onclick="deleteWorkspace('${w.id}','${esc(w.name)}')">Delete</button>
+    </div>`).join('');
+}
+
+async function deleteWorkspace(id, name) {
+  if (!confirm(`Delete "${name}" and all its content? Cannot be undone.`)) return;
+  await sb.from('workspaces').delete().eq('id', id);
+  state.workspaces = state.workspaces.filter(w => w.id !== id);
+  if (state.workspaceId === id && state.workspaces.length) await selectWorkspace(state.workspaces[0].id, state.workspaces[0].name);
+  renderWsList(); renderSettingsWsList(); toast('Workspace deleted');
+}
+
+// ============================================================
+// BRAND DOC
+// ============================================================
+async function loadBrandDoc() {
+  const { data } = await sb.from('brand_docs').select('*').eq('workspace_id', state.workspaceId).maybeSingle();
+  state.brandDoc = data;
+  if (data) { setVal('brand-raw', data.raw_text); populateBrandFields(data); document.getElementById('brand-profile').style.display = 'block'; }
+  else document.getElementById('brand-profile').style.display = 'none';
+}
+
+function populateBrandFields(d) {
+  setVal('b-name', d.business_name); setVal('b-tagline', d.tagline);
+  setVal('b-audience', d.audience); setVal('b-tone', d.tone); setVal('b-cta', d.cta_goal);
+  setVal('b-pillars', (d.content_pillars || []).join(', '));
+  setVal('b-pain', (d.pain_points || []).join('\n'));
+  setVal('b-triggers', d.buying_triggers || '');
+  setVal('b-comp', d.competitors);
+}
+
+async function extractBrand() {
+  const raw = getVal('brand-raw');
+  if (!raw) return toast('Paste your brand document first', 'error');
+  setLoading('brand-btn-text', 'brand-spinner', true);
+
+  const result = await callClaude(`You are a brand strategist. Extract structured information from this brand document and return ONLY valid JSON:
+{
+  "business_name": "string",
+  "tagline": "string",
+  "audience": "string — detailed ICP: demographics, lifestyle, struggles, emotional state",
+  "tone": "string — tone of voice descriptors",
+  "cta_goal": "string — primary call to action e.g. book a free consultation",
+  "content_pillars": ["4-6 content themes"],
+  "pain_points": ["core audience pain points"],
+  "buying_triggers": "string — what pushes them to finally take action",
+  "competitors": "string — competitors and what makes this business different"
+}
+Brand document:\n${raw}`, 1200);
+
+  setLoading('brand-btn-text', 'brand-spinner', false, '🔍 Extract & save brand profile');
+  if (!result) return;
+
+  let parsed;
+  try { parsed = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
+  catch { return toast('Could not parse brand data — try rewording your document', 'error'); }
+
+  const payload = { ...parsed, raw_text: raw, workspace_id: state.workspaceId, updated_at: new Date().toISOString() };
+  if (state.brandDoc) await sb.from('brand_docs').update(payload).eq('id', state.brandDoc.id);
+  else { const { data } = await sb.from('brand_docs').insert(payload).select().single(); state.brandDoc = data; }
+
+  populateBrandFields(parsed);
+  document.getElementById('brand-profile').style.display = 'block';
+  toast('Brand profile saved ✓', 'success');
+}
+
+async function saveBrandProfile() {
+  const pillars = getVal('b-pillars').split(',').map(s => s.trim()).filter(Boolean);
+  const pain = getVal('b-pain').split('\n').map(s => s.trim()).filter(Boolean);
+  const payload = {
+    business_name: getVal('b-name'), tagline: getVal('b-tagline'), audience: getVal('b-audience'),
+    tone: getVal('b-tone'), cta_goal: getVal('b-cta'), content_pillars: pillars, pain_points: pain,
+    buying_triggers: getVal('b-triggers'), competitors: getVal('b-comp'),
+    updated_at: new Date().toISOString(),
+  };
+  if (state.brandDoc) await sb.from('brand_docs').update(payload).eq('id', state.brandDoc.id);
+  else { const { data } = await sb.from('brand_docs').insert({ ...payload, workspace_id: state.workspaceId }).select().single(); state.brandDoc = data; }
+  toast('Brand profile saved ✓', 'success');
+}
+
+// ============================================================
+// STAGE SELECTOR
+// ============================================================
+function selectStage(stage) {
+  state.currentStage = stage;
+  ['awareness','information','action'].forEach(s => {
+    document.getElementById(`stage-btn-${s}`).classList.toggle('active', s === stage);
+    document.getElementById(`sub-${s}`).style.display = s === stage ? 'block' : 'none';
+  });
+  document.getElementById('gen-output').style.display = 'none';
+}
+
+// ============================================================
+// AWARENESS GENERATION
+// ============================================================
+async function generateAwareness() {
+  const problem = getVal('aw-problem');
+  if (!problem) return toast('Enter the problem to focus on', 'error');
+  const format = document.getElementById('aw-format').value;
+  const platform = document.getElementById('aw-platform').value;
+  const ctaWord = getVal('aw-cta-word') || 'INFO';
+  const brand = getBrandContext();
+
+  setLoading(null, 'aw-spinner', true);
+  document.getElementById('gen-output').style.display = 'none';
+
+  const formatInstructions = {
+    'post': `Write a scroll-stopping ${platform} post using this structure:
+- HOOK: A real-life moment or bold statement that makes the reader freeze mid-scroll (1-2 lines)
+- INTERNAL DIALOGUE: Use their actual internal thoughts ("I keep starting and stopping", "I'm always tired", "nothing seems to work")
+- EMOTIONAL STRUGGLE: Validate the struggle without judgment (2-3 short paragraphs, 1-2 lines each)
+- REMOVE BLAME: Show it's not their fault — the PLAN didn't fit their life
+- BELIEF SHIFT: One line that opens the door to possibility
+- SOFT CTA: "If this sounds like you, comment ${ctaWord} below."
+No emojis. No fluff. Short paragraphs. Reading age 10. Write to ONE person.`,
+
+    'video-script': `Write a 60-90 second short-form video script using:
+[HOOK] — first 3 seconds, bold statement or "If you…" opener
+[PROBLEM] — what they're experiencing (specific, relatable)
+[INSIGHT] — the real reason they're stuck (reframes the blame away from them)
+[SOLUTION] — what the coaching does differently (don't oversell, keep it brief)
+[SOFT CLOSE] — "If that sounds like you, comment ${ctaWord} or send me a DM"
+Format with section labels. Keep sentences SHORT. Spoken word style.`,
+
+    'hook-list': `Generate 10 scroll-stopping hooks for ${platform} content about this problem. Each hook should be the first 1-2 lines of a post or video that makes the ideal client STOP scrolling. Use varied styles: "If you…" openers, bold claims, myth busters, questions, surprising stats. No generic advice. Make them feel specific to the person.`,
+
+    'myth': `Write a myth-busting ${platform} post.
+Structure: State the myth → Validate why people believe it → Bust it with the truth → Explain what actually works → Soft CTA ("comment ${ctaWord} to learn more")`
+  };
+
+  const prompt = `You are an expert direct-response content strategist for fitness/coaching businesses.
+
+${brand}
+
+TASK: Create awareness content about this specific problem: "${problem}"
+Platform: ${platform}
+
+${formatInstructions[format]}
+
+WRITING RULES (strictly follow these):
+- Write to ONE specific person (the ideal client)
+- Short paragraphs — 1-2 lines max
+- No corporate language, no fluff, no generic advice
+- DO NOT use words: "support", "structure", "guidance" — replace with specific experiences
+- Make it emotionally accurate — they should read it and think "this is literally me"
+- British English
+
+Return ONLY valid JSON: {"main": "the complete content", "caption_note": "brief note on what image/video to pair this with"}`;
+
+  const result = await callClaude(prompt, 1500);
+  setLoading(null, 'aw-spinner', false);
+  if (!result) return;
+
+  let parsed;
+  try { parsed = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
+  catch { return toast('Unexpected response — try regenerating', 'error'); }
+
+  const formatLabels = { 'post': `📱 ${platform} awareness post`, 'video-script': '🎬 Video script', 'hook-list': '🪝 Hook options', 'myth': '💥 Myth-busting post' };
+  const blocks = [
+    { label: formatLabels[format] || 'Content', text: parsed.main },
+    { label: '📸 Paired visual idea', text: parsed.caption_note },
+  ];
+
+  showOutputBlocks('gen-output-blocks', blocks);
+  document.getElementById('gen-output').style.display = 'block';
+  state.lastGenerated = { topic: problem, platform, format: 'standard', stage: 'awareness', content: { main: parsed.main, captionNote: parsed.caption_note } };
+  state.currentRegen = generateAwareness;
+}
+
+// ============================================================
+// INFORMATION GENERATION
+// ============================================================
+function updateInfoFields() {
+  const type = document.getElementById('info-type').value;
+  document.getElementById('info-results-fields').style.display = type === 'results' ? 'block' : 'none';
+  document.getElementById('info-method-fields').style.display = type === 'method' ? 'block' : 'none';
+  document.getElementById('info-shopwindow-fields').style.display = type === 'shopwindow' ? 'block' : 'none';
+}
+
+async function generateInformation() {
+  const type = document.getElementById('info-type').value;
+  const platform = document.getElementById('info-platform').value;
+  const brand = getBrandContext();
+  setLoading(null, 'info-spinner', true);
+  document.getElementById('gen-output').style.display = 'none';
+
+  let specificInstructions = '';
+  let topic = '';
+
+  if (type === 'results') {
+    const clientName = getVal('info-client-name');
+    const result = getVal('info-result');
+    const before = getVal('info-before');
+    if (!result) { setLoading(null, 'info-spinner', false); return toast('Enter the result achieved', 'error'); }
+    topic = `Client result: ${clientName} — ${result}`;
+    specificInstructions = `Write a client results post / case study for ${platform}.
+Client: ${clientName || 'a client of ours'}
+Result: ${result}
+Their situation before: ${before || 'struggling with consistency and past failed attempts'}
+
+Structure:
+- Hook: lead with the result or a relatable line about where they started
+- Before: where they were (specific, relatable to the ideal client)
+- The moment they decided to change (buying trigger)
+- What they did differently (the coaching approach — not a sales pitch, a story)
+- The result (specific numbers/outcomes where possible)
+- Social proof CTA: "If you want to know how [Name] did it, comment RESULTS"`;
+  } else if (type === 'method') {
+    const pillar = document.getElementById('info-pillar').value;
+    const myth = getVal('info-myth');
+    topic = `Method content: ${pillar}`;
+    specificInstructions = `Write a method content post for ${platform} explaining this pillar: "${pillar}".
+Common misconception the audience has: "${myth || 'they think the old approach is the only way'}"
+
+Structure:
+- Open with the common frustration or misconception
+- Explain WHY that approach doesn't work for people like them
+- Introduce your approach (1-2 sentences — what you do differently)
+- Explain WHY it works better (the logic/benefit)
+- Brief soft CTA ("If you'd like to understand how this works in practice, comment INFO")
+No hard selling. This sells the PROCESS, not the product.`;
+  } else {
+    const angle = document.getElementById('info-sw').value;
+    topic = `Shop window: ${angle}`;
+    specificInstructions = `Write a shop window / behind-the-scenes post for ${platform} showing: "${angle}".
+Goal: help prospects visualise what it would actually be like to train here.
+Make it feel real, warm, and specific. Show the human side — the coaching, the atmosphere, the community.
+End with a soft question or CTA that invites curiosity: "Curious what your first session would look like? Comment TOUR"`;
+  }
+
+  const prompt = `You are an expert content strategist for fitness and coaching businesses.
+
+${brand}
+
+TASK: ${specificInstructions}
+
+WRITING RULES:
+- Short paragraphs (1-2 lines)
+- Speak to ONE person — the ideal client who is researching options
+- Emotionally specific — make them feel understood
+- No corporate language, no fluff
+- British English
+
+Return ONLY valid JSON: {"main": "the complete post", "visual_idea": "what photo or video to pair this with"}`;
+
+  const result = await callClaude(prompt, 1500);
+  setLoading(null, 'info-spinner', false);
+  if (!result) return;
+
+  let parsed;
+  try { parsed = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
+  catch { return toast('Unexpected response', 'error'); }
+
+  showOutputBlocks('gen-output-blocks', [
+    { label: `📱 ${platform} information post`, text: parsed.main },
+    { label: '📸 Visual / image idea', text: parsed.visual_idea },
+  ]);
+  document.getElementById('gen-output').style.display = 'block';
+  state.lastGenerated = { topic, platform, format: 'standard', stage: 'information', content: { main: parsed.main, visualIdea: parsed.visual_idea } };
+  state.currentRegen = generateInformation;
+}
+
+// ============================================================
+// ACTION GENERATION
+// ============================================================
+async function generateAction() {
+  const type = document.getElementById('act-type').value;
+  const goal = getVal('act-goal');
+  const keyword = getVal('act-keyword') || 'START';
+  const brand = getBrandContext();
+  setLoading(null, 'act-spinner', true);
+  document.getElementById('gen-output').style.display = 'none';
+
+  const typeInstructions = {
+    'two-step': `Write a TWO-STEP post for ${goal}. Structure: compelling hook about a relatable struggle → value promise → "Comment ${keyword} below and I'll send you [specific thing]". Also write 3 alternate hook variations they can test.`,
+    'poll': `Create 5 story poll ideas designed to start DM conversations. Each poll should feel natural, not salesy. Format: the poll question + what to say when they respond "Yes". Goal: get them into a DM conversation about ${goal}.`,
+    'offer': `Write a direct consultation invitation post. Hook → briefly identify who it's for → what they'll get from the call → low-pressure CTA ("no obligation", "just a chat"). Make it feel like an invitation, not a sales pitch. CTA: ${goal}.`,
+    'dm-script': `Write a 3-part DM response script for when someone comments ${keyword} or enquiries about ${goal}. Script 1: initial reply (warm, not robotic). Script 2: follow-up if they don't respond after 24hrs. Script 3: discovery question to start the conversation ("Before I send anything over, can I ask — what's your biggest struggle right now?").`
+  };
+
+  const prompt = `You are a direct-response copywriter and sales strategist for fitness coaching businesses.
+
+${brand}
+
+TASK: ${typeInstructions[type]}
+
+WRITING RULES:
+- Conversational, warm, never pushy
+- Specific and direct — every word earns its place
+- British English
+- Low pressure — the goal is conversation, not immediate sale
+
+Return ONLY valid JSON: {"main": "the complete content", "tip": "one practical tip for using this content effectively"}`;
+
+  const result = await callClaude(prompt, 1200);
+  setLoading(null, 'act-spinner', false);
+  if (!result) return;
+
+  let parsed;
+  try { parsed = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
+  catch { return toast('Unexpected response', 'error'); }
+
+  showOutputBlocks('gen-output-blocks', [
+    { label: '🎯 Action content', text: parsed.main },
+    { label: '💡 Pro tip', text: parsed.tip },
+  ]);
+  document.getElementById('gen-output').style.display = 'block';
+  state.lastGenerated = { topic: `Action: ${type}`, platform: 'Social', format: 'standard', stage: 'action', content: { main: parsed.main, tip: parsed.tip } };
+  state.currentRegen = generateAction;
+}
+
+function regenCurrent() { if (state.currentRegen) state.currentRegen(); }
+
+// ============================================================
+// POWER CONTENT
+// ============================================================
+async function generatePower() {
+  const pain = getVal('pow-pain');
+  const insight = getVal('pow-insight');
+  const cta = getVal('pow-cta');
+  if (!pain || !cta) return toast('Fill in the pain point and CTA', 'error');
+  const platform = document.getElementById('pow-platform').value;
+  const length = document.getElementById('pow-length').value;
+  const hookStyle = document.getElementById('pow-hook').value;
+  const brand = getBrandContext();
+
+  setLoading(null, 'pow-spinner', true);
+  document.getElementById('pow-output').style.display = 'none';
+
+  const hookStyleDesc = {
+    'bold-claim': 'A bold, specific claim that immediately hooks the right person',
+    'question': 'A provocative question that makes them stop and think "wait, is that me?"',
+    'if-you': 'An "If you [specific situation]…" opener that calls out the exact person',
+    'myth': 'Bust a common myth they believe — "Most people think X. They\'re wrong."',
+    'stat': 'A surprising number or stat that instantly grabs attention',
+  };
+
+  const prompt = `You are a world-class direct-response copywriter who has studied the best: Russell Brunson, Frank Kern, Alex Hormozi.
+
+${brand}
+
+Write a ${length}-second ${platform} video script using this exact framework:
+[HOOK] — ${hookStyleDesc[hookStyle]}. First 2-3 seconds. One sentence.
+[PROBLEM] — Describe their specific situation. Use real-life scenes. Internal dialogue. Make them feel understood.
+[INSIGHT] — The real reason they're stuck. Reframe the blame away from them. "${insight || 'The plan didn\'t fit their life'}"
+[SOLUTION] — What you do differently. Keep this brief — 2-3 sentences. Don't oversell.
+[SOFT CLOSE] — "${cta}" — low pressure, conversational.
+
+Pain point to focus on: "${pain}"
+
+WRITING RULES (strictly follow):
+- Spoken word — conversational, not written
+- SHORT sentences — one idea per line
+- Internal dialogue (e.g. "You're thinking — why isn't this working?")
+- No fluff, no corporate speak
+- British English
+
+Also generate:
+- 5 bold on-screen text overlays (punchy statements to show between cuts)
+- The post caption for uploading this video (hook line, 2-3 lines body, CTA)
+
+Return ONLY valid JSON:
+{
+  "script": "full script with [HOOK], [PROBLEM], [INSIGHT], [SOLUTION], [SOFT CLOSE] labels",
+  "overlays": "5 on-screen text overlays, numbered",
+  "caption": "the post caption"
+}`;
+
+  const result = await callClaude(prompt, 1800);
+  setLoading(null, 'pow-spinner', false);
+  if (!result) return;
+
+  let parsed;
+  try { parsed = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
+  catch { return toast('Unexpected response — try regenerating', 'error'); }
+
+  showOutputBlocks('pow-output-blocks', [
+    { label: '🎬 Video script', text: parsed.script },
+    { label: '🎤 On-screen text overlays', text: parsed.overlays },
+    { label: '📝 Post caption', text: parsed.caption },
+  ]);
+  document.getElementById('pow-output').style.display = 'block';
+  state.lastPower = { topic: `Power: ${pain.slice(0,60)}`, platform, format: 'power', stage: 'power', content: { script: parsed.script, overlays: parsed.overlays, caption: parsed.caption } };
+}
+
+// ============================================================
+// REPURPOSE ENGINE
+// ============================================================
+async function generateRepurpose() {
+  const source = getVal('rep-source');
+  if (!source) return toast('Paste your source content or describe the topic', 'error');
+  const stage = document.getElementById('rep-stage').value;
+  const brand = getBrandContext();
+
+  const selected = [...document.querySelectorAll('#format-grid input:checked')].map(i => i.value);
+  if (!selected.length) return toast('Select at least one format', 'error');
+
+  setLoading(null, 'rep-spinner', true);
+  document.getElementById('rep-output').style.display = 'none';
+
+  const formatInstructions = {
+    'facebook': 'FACEBOOK POST: Optimised for Facebook. Longer form, story-led, personal. 150-350 words. Hook + body + CTA.',
+    'instagram': 'INSTAGRAM CAPTION: Hook on line 1 (makes them tap "more"). 80-150 words. Line breaks. 3-5 relevant hashtags at end.',
+    'reel-script': 'REEL/SHORT SCRIPT: 60-second spoken script. [HOOK] (3 sec) → [BODY] → [CTA]. Short sentences, spoken word style.',
+    'email': 'EMAIL VERSION: Subject line + preview text + full email (200-350 words). Personal, conversational. One clear CTA at the end.',
+    'linkedin': 'LINKEDIN POST: Thought leadership angle. Professional but personal. 150-250 words. Hook + insight + takeaway + question to drive comments.',
+    'hooks': '5 SCROLL-STOPPING HOOKS: Five different hook options for this content. Varied styles. One per line, numbered.',
+    'story-poll': 'STORY POLL: 3 Instagram/Facebook story poll ideas. Format: Poll question + "Yes" label + "No/Not yet" label + what to DM them when they vote Yes.',
+    'two-step': 'TWO-STEP POST: Comment-based post that drives DM conversations. Hook → value tease → "Comment [KEYWORD] for [thing]".',
+  };
+
+  const selectedInstructions = selected.map(f => formatInstructions[f]).join('\n\n');
+
+  const prompt = `You are a world-class content repurposing strategist.
+
+${brand}
+
+SOURCE CONTENT (${stage} stage):
+${source}
+
+REPURPOSE this content into the following formats. Keep the core message and angle consistent but optimise each format for its platform and context.
+
+WRITING RULES for all formats:
+- British English
+- Short paragraphs (1-2 lines)
+- Emotionally accurate — sounds like a real person, not a brand
+- No fluff, every line earns its place
+- Consistent brand voice throughout
+
+FORMATS TO GENERATE:
+${selectedInstructions}
+
+Return ONLY valid JSON with a key for each format requested (use the format code as the key):
+${JSON.stringify(selected.reduce((o, k) => ({ ...o, [k]: 'string' }), {}), null, 2)}`;
+
+  const result = await callClaude(prompt, selected.length * 400 + 500);
+  setLoading(null, 'rep-spinner', false);
+  if (!result) return;
+
+  let parsed;
+  try { parsed = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
+  catch { return toast('Unexpected response — try regenerating', 'error'); }
+
+  const labelMap = {
+    facebook: '📘 Facebook post', instagram: '📸 Instagram caption', 'reel-script': '🎬 Reel / Short script',
+    email: '📧 Email version', linkedin: '💼 LinkedIn post', hooks: '🪝 Hook options',
+    'story-poll': '📊 Story poll ideas', 'two-step': '💬 Two-step post',
+  };
+
+  const blocks = selected.map(k => ({ label: labelMap[k] || k, text: parsed[k] || 'Not generated' }));
+  showOutputBlocks('rep-output-blocks', blocks);
+  document.getElementById('rep-output').style.display = 'block';
+  state.lastRepurpose = { topic: source.slice(0, 80), platform: 'Multi-platform', format: 'repurpose', stage, content: parsed };
+}
+
+// ============================================================
+// SOCIAL SCANNER
+// ============================================================
+async function runScanner() {
+  const posts = getVal('scan-posts');
+  if (!posts) return toast('Paste your posts first', 'error');
+  const brand = getBrandContext();
+  setLoading(null, 'scan-spinner', true);
+
+  const prompt = `You are a social media analytics expert who specialises in the Hybrid Content Ecosystem — the C³ Method (Content → Conversations → Consultations).
+
+${brand}
+
+Analyse these social media posts and their engagement data. Identify clear patterns about what's working and what isn't.
+
+POSTS:
+${posts}
+
+Analyse against the three buyer stages (Awareness / Information / Action) and identify which stage of content performs best.
+
+Return ONLY valid JSON:
+{
+  "top_performers": "description of the best-performing content — type, tone, format, what stage it targets",
+  "flops": "what underperformed and why",
+  "winning_stage": "which buyer stage (Awareness/Information/Action) gets the most engagement and why",
+  "winning_formats": ["content formats that get the most engagement"],
+  "winning_hooks": ["3 hook styles based on the data that work for this audience"],
+  "content_gaps": "which buyer stage is missing or underserved in their current content",
+  "content_to_replicate": ["3 specific content ideas to create based on the top performers"],
+  "summary": "one paragraph: the single most important insight and the #1 thing they should do more of"
+}`;
+
+  const result = await callClaude(prompt, 1500);
+  setLoading(null, 'scan-spinner', false);
+  if (!result) return;
+
+  let parsed;
+  try { parsed = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
+  catch { return toast('Could not parse analysis', 'error'); }
+
+  await sb.from('scanner_analyses').insert({ workspace_id: state.workspaceId, raw_posts: posts, analysis: parsed });
+  await loadScans();
+  renderScanOutput(parsed);
+}
+
+function renderScanOutput(a) {
+  const el = document.getElementById('scan-output');
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div class="insight-card"><h4>📈 What's working</h4><p>${a.top_performers || ''}</p></div>
+    <div class="insight-card"><h4>📉 What's flopping</h4><p>${a.flops || ''}</p></div>
+    <div class="insight-card"><h4>🎯 Best-performing buyer stage</h4><p>${a.winning_stage || ''}</p></div>
+    <div class="insight-card"><h4>⚠️ Content gap</h4><p>${a.content_gaps || ''}</p></div>
+    <div class="insight-card"><h4>🪝 Hooks that work for your audience</h4><p>${(a.winning_hooks || []).map(h => `• ${h}`).join('<br>')}</p></div>
+    <div class="insight-card"><h4>💡 Create more of this</h4><p>${(a.content_to_replicate || []).map((c,i) => `<strong>${i+1}.</strong> ${c}`).join('<br><br>')}</p></div>
+    <div class="insight-card" style="border-left:4px solid var(--accent)"><h4>⭐ Key insight</h4><p>${a.summary || ''}</p></div>
+  `;
+}
+
+function switchScanTab(btn, view) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('scan-input').style.display = view === 'scan-input' ? 'block' : 'none';
+  document.getElementById('scan-history').style.display = view === 'scan-history' ? 'block' : 'none';
+  if (view === 'scan-history') renderScanHistory();
+}
+
+function renderScanHistory() {
+  const el = document.getElementById('scan-history-list');
+  if (!state.scans.length) { el.innerHTML = '<div class="empty"><div class="icon">🔬</div><p>No past analyses yet</p></div>'; return; }
+  el.innerHTML = state.scans.map(s => `
+    <div class="insight-card" style="cursor:pointer" onclick="renderScanOutput(${JSON.stringify(s.analysis).replace(/"/g,'&quot;')})">
+      <h4>${new Date(s.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</h4>
+      <p style="font-size:13px;color:var(--muted)">${s.analysis?.summary?.slice(0,120) || ''}…</p>
+    </div>`).join('');
+}
+
+// ============================================================
+// POST HISTORY
+// ============================================================
+async function loadPosts() {
+  const { data } = await sb.from('posts').select('*').eq('workspace_id', state.workspaceId).order('created_at', { ascending: false });
+  state.posts = data || [];
+  renderHistory(); refreshDashboard();
+}
+
+async function loadScans() {
+  const { data } = await sb.from('scanner_analyses').select('*').eq('workspace_id', state.workspaceId).order('created_at', { ascending: false });
+  state.scans = data || [];
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  const search = (getVal('history-search') || '').toLowerCase();
+  const filter = document.getElementById('history-filter')?.value || '';
+  const stageFilter = document.getElementById('history-stage')?.value || '';
+  let posts = state.posts.filter(p => {
+    if (filter && p.status !== filter) return false;
+    if (stageFilter && p.stage !== stageFilter) return false;
+    if (search && !p.topic?.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  if (!posts.length) { el.innerHTML = '<div class="empty"><div class="icon">📂</div><p>No posts yet</p></div>'; return; }
+  const stageIcon = { awareness: '📢', information: '🔍', action: '🎯', power: '⚡', repurpose: '♻️' };
+  el.innerHTML = posts.map(p => `
+    <div class="post-item">
+      <div class="body">
+        <h3>${p.topic || 'Untitled'}</h3>
+        <div class="info">
+          <span class="tag tag-${p.status}">${p.status}</span>
+          &nbsp; ${stageIcon[p.stage] || '✍️'} ${p.stage || p.format} · ${p.platform || '–'} · ${new Date(p.created_at).toLocaleDateString('en-GB')}
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost btn-sm" onclick="viewPost('${p.id}')">View</button>
+        ${p.status !== 'approved' ? `<button class="btn btn-primary btn-sm" onclick="updateStatus('${p.id}','approved')">Approve</button>` : ''}
+        ${p.status !== 'archived' ? `<button class="btn btn-ghost btn-sm" onclick="updateStatus('${p.id}','archived')">Archive</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+async function approvePost(source) { await savePost(source, 'approved'); toast('Post approved & saved ✓', 'success'); }
+async function saveAsDraft(source) { await savePost(source, 'draft'); toast('Saved as draft', 'success'); }
+
+async function savePost(source, status) {
+  let data;
+  if (source === 'power') data = state.lastPower;
+  else if (source === 'repurpose') data = state.lastRepurpose;
+  else data = state.lastGenerated;
+  if (!data) return;
+  const { data: saved } = await sb.from('posts').insert({ ...data, workspace_id: state.workspaceId, status }).select().single();
+  if (saved) state.posts.unshift(saved);
+  renderHistory(); refreshDashboard();
+}
+
+async function updateStatus(id, status) {
+  await sb.from('posts').update({ status }).eq('id', id);
+  const p = state.posts.find(p => p.id === id);
+  if (p) p.status = status;
+  renderHistory(); refreshDashboard(); toast(`Post ${status}`, 'success');
+}
+
+function viewPost(id) {
+  const p = state.posts.find(p => p.id === id);
+  if (!p) return;
+  const c = p.content || {};
+  let blocks = [];
+  if (p.stage === 'power') blocks = [['🎬 Script', c.script], ['🎤 Overlays', c.overlays], ['📝 Caption', c.caption]];
+  else if (p.stage === 'repurpose') blocks = Object.entries(c).map(([k,v]) => [k, v]);
+  else blocks = [['📱 Content', c.main || c.post], ['📸 Visual idea', c.visualIdea || c.captionNote || c.imageIdea]];
+
+  document.getElementById('post-modal-body').innerHTML = `
+    <h2 style="margin-bottom:4px">${p.topic || 'Post'}</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:18px">${p.stage || p.format} · ${p.platform || ''} · ${new Date(p.created_at).toLocaleDateString('en-GB')}</p>
+    ${blocks.filter(([,v]) => v).map(([title, val]) => `<div class="output-block"><h4>${title}</h4><pre>${val}</pre></div>`).join('')}`;
+  document.getElementById('post-modal').style.display = 'flex';
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function refreshDashboard() {
+  setEl('stat-total', state.posts.length);
+  setEl('stat-approved', state.posts.filter(p => p.status === 'approved').length);
+  setEl('stat-draft', state.posts.filter(p => p.status === 'draft').length);
+  setEl('stat-scans', state.scans.length);
+
+  const recent = state.posts.slice(0, 5);
+  const el = document.getElementById('dash-recent');
+  const stageIcon = { awareness: '📢', information: '🔍', action: '🎯', power: '⚡', repurpose: '♻️' };
+  if (!recent.length) { el.innerHTML = '<p style="color:var(--muted);font-size:14px">No posts yet — hit "Write a post" to get started.</p>'; return; }
+  el.innerHTML = recent.map(p => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)">
+      <div>
+        <div style="font-size:14px;font-weight:600">${stageIcon[p.stage] || '✍️'} ${p.topic || 'Untitled'}</div>
+        <div style="font-size:12px;color:var(--muted)">${p.platform || ''} · ${new Date(p.created_at).toLocaleDateString('en-GB')}</div>
+      </div>
+      <span class="tag tag-${p.status}">${p.status}</span>
+    </div>`).join('');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function saveSettings() {
+  const url = document.getElementById('set-url').value.trim();
+  const key = document.getElementById('set-key').value.trim();
+  if (!url || !key) return toast('Both fields required', 'error');
+  localStorage.setItem('sq_url', url); localStorage.setItem('sq_key', key);
+  toast('Settings saved — reload to reconnect', 'success');
+}
+
+// ============================================================
+// ROUTER
+// ============================================================
+const viewTitles = { dashboard:'Dashboard', brand:'Brand Hub', generate:'Generate Content', power:'Power Content Studio', repurpose:'Repurpose Engine', scanner:'Social Scanner', history:'Post History', settings:'Settings' };
+
+function setupRouter() { window.addEventListener('hashchange', routeFromHash); routeFromHash(); }
+
+function routeFromHash() {
+  const hash = location.hash.replace('#/', '') || 'dashboard';
+  showView(hash);
+}
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+  const el = document.getElementById('view-' + name);
+  if (el) el.style.display = 'block';
+  document.getElementById('page-title').textContent = viewTitles[name] || name;
+  document.querySelectorAll('.nav-link').forEach(a => a.classList.toggle('active', a.dataset.view === name));
+
+  if (name === 'generate') {
+    document.getElementById('no-brand-warn').style.display = state.brandDoc ? 'none' : 'block';
+    selectStage(state.currentStage);
+  }
+  if (name === 'settings') {
+    setVal('set-url', localStorage.getItem('sq_url') || '');
+    setVal('set-key', localStorage.getItem('sq_key') || '');
+    renderSettingsWsList();
+  }
+  if (name === 'history') renderHistory();
+  if (name === 'dashboard') refreshDashboard();
+}
+
+// ============================================================
+// CLAUDE API
+// ============================================================
+async function callClaude(prompt, maxTokens = 1000) {
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+    });
+    if (!res.ok) { const err = await res.json(); toast('API error: ' + (err.error || res.status), 'error'); return null; }
+    const data = await res.json();
+    return data.content?.[0]?.text || null;
+  } catch (e) {
+    toast('Network error — is the Vercel function running?', 'error');
+    return null;
+  }
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function getBrandContext() {
+  const b = state.brandDoc;
+  if (!b) return 'No brand profile set — generate content as a general fitness coaching business.';
+  return `BRAND CONTEXT:
+Business: ${b.business_name || ''}${b.tagline ? ' — ' + b.tagline : ''}
+Ideal Client Profile: ${b.audience || ''}
+Tone of voice: ${b.tone || ''}
+Primary CTA goal: ${b.cta_goal || ''}
+Content pillars: ${(b.content_pillars || []).join(', ')}
+Client pain points: ${(b.pain_points || []).join('; ')}
+Buying triggers: ${b.buying_triggers || ''}
+Differentiators vs competitors: ${b.competitors || ''}`;
+}
+
+function showOutputBlocks(containerId, blocks) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = blocks.filter(b => b.text).map(b => `
+    <div class="output-block">
+      <h4>${b.label}</h4>
+      <pre id="ob-${Math.random().toString(36).slice(2)}">${b.text}</pre>
+      <button class="copy-btn" onclick="this.previousElementSibling.textContent && navigator.clipboard.writeText(this.previousElementSibling.textContent).then(()=>toast('Copied!'))">Copy</button>
+    </div>`).join('');
+}
+
+function toast(msg, type = '') {
+  const el = document.createElement('div');
+  el.className = 'toast-item ' + type;
+  el.textContent = msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function showModal(html) {
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay')) document.getElementById('modal-overlay').style.display = 'none';
+}
+
+function getVal(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
+function setEl(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function esc(s) { return s.replace(/'/g, "\\'").replace(/"/g, '\\"'); }
+
+function setLoading(textId, spinnerId, loading, resetText = '') {
+  if (textId) { const t = document.getElementById(textId); if (t) t.style.display = loading ? 'none' : 'inline'; if (!loading && resetText && t) t.textContent = resetText; }
+  const s = document.getElementById(spinnerId);
+  if (s) s.style.display = loading ? 'inline-block' : 'none';
+}
+
+// format checkboxes toggle class
+document.addEventListener('change', e => {
+  if (e.target.closest('.format-check')) {
+    e.target.closest('.format-check').classList.toggle('selected', e.target.checked);
+  }
+});
+
+init();
+</script>
+</body>
+</html>
