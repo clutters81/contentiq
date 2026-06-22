@@ -135,6 +135,30 @@ textarea{resize:vertical;min-height:90px}
 .setup-step h3{font-size:13.5px;font-weight:700;margin-bottom:3px}
 .setup-step p{font-size:12.5px;color:var(--muted)}
 
+/* IMAGE LIBRARY */
+.img-upload-zone{border:2px dashed var(--line);border-radius:14px;padding:40px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:18px}
+.img-upload-zone:hover,.img-upload-zone.drag-over{border-color:var(--accent);background:rgba(249,115,22,.05)}
+.img-upload-zone .upload-icon{font-size:36px;margin-bottom:8px}
+.img-upload-zone p{color:var(--muted);font-size:14px}
+.img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:16px}
+.img-card{background:var(--card2);border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative;cursor:pointer;transition:.15s}
+.img-card:hover{border-color:var(--accent)}
+.img-card img{width:100%;height:120px;object-fit:cover;display:block}
+.img-card .img-meta{padding:8px 10px}
+.img-card .img-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.img-card .img-tag{font-size:10px;background:var(--line);color:var(--muted);padding:2px 7px;border-radius:999px}
+.img-card .img-del{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);border:none;border-radius:6px;color:#fff;font-size:12px;padding:3px 7px;cursor:pointer;display:none}
+.img-card:hover .img-del{display:block}
+.img-card.uploading{opacity:.6}
+.img-card.selected{border-color:var(--success);box-shadow:0 0 0 2px var(--success)}
+.match-result{background:var(--card2);border:1px solid var(--success);border-radius:14px;padding:16px;margin-top:12px;display:flex;gap:14px;align-items:flex-start}
+.match-result img{width:120px;height:90px;object-fit:cover;border-radius:10px;flex-shrink:0}
+.match-result .match-info{flex:1}
+.match-result h4{font-size:14px;font-weight:700;color:var(--success);margin-bottom:4px}
+.match-result p{font-size:13px;color:var(--muted)}
+.upload-progress{background:var(--card2);border-radius:10px;padding:12px 16px;margin-bottom:8px;font-size:13px;display:flex;align-items:center;gap:10px}
+.upload-progress .prog-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
 /* INSIGHT CARDS */
 .insight-card{background:var(--card2);border-radius:12px;padding:14px;margin-bottom:10px}
 .insight-card h4{font-size:13px;font-weight:700;margin-bottom:5px;color:var(--accent)}
@@ -186,6 +210,7 @@ textarea{resize:vertical;min-height:90px}
     <a href="#/generate" class="nav-link" data-view="generate"><span class="icon">✍️</span> Generate Content</a>
     <a href="#/power" class="nav-link" data-view="power"><span class="icon">⚡</span> Power Content</a>
     <a href="#/repurpose" class="nav-link" data-view="repurpose"><span class="icon">♻️</span> Repurpose Engine</a>
+    <a href="#/images" class="nav-link" data-view="images"><span class="icon">🖼️</span> Image Library</a>
     <div class="nav-section">Review</div>
     <a href="#/scanner" class="nav-link" data-view="scanner"><span class="icon">🔬</span> Social Scanner</a>
     <a href="#/history" class="nav-link" data-view="history"><span class="icon">📂</span> Post History</a>
@@ -420,7 +445,9 @@ textarea{resize:vertical;min-height:90px}
           <button class="btn btn-primary btn-sm" onclick="approvePost('generate')">✓ Approve & save</button>
           <button class="btn btn-ghost btn-sm" onclick="saveAsDraft('generate')">Save as draft</button>
           <button class="btn btn-ghost btn-sm" onclick="regenCurrent()">↺ Regenerate</button>
+          <button class="btn btn-ghost btn-sm" onclick="findMatchingImage('generate')" id="match-img-btn">🖼️ Find matching image</button>
         </div>
+        <div id="gen-image-match" style="display:none"></div>
       </div>
     </div>
 
@@ -483,7 +510,9 @@ textarea{resize:vertical;min-height:90px}
           <button class="btn btn-primary btn-sm" onclick="approvePost('power')">✓ Approve & save</button>
           <button class="btn btn-ghost btn-sm" onclick="saveAsDraft('power')">Save as draft</button>
           <button class="btn btn-ghost btn-sm" onclick="generatePower()">↺ Regenerate</button>
+          <button class="btn btn-ghost btn-sm" onclick="findMatchingImage('power')">🖼️ Find matching image</button>
         </div>
+        <div id="pow-image-match" style="display:none"></div>
       </div>
     </div>
 
@@ -526,6 +555,33 @@ textarea{resize:vertical;min-height:90px}
           <button class="btn btn-primary btn-sm" onclick="approvePost('repurpose')">✓ Approve & save all</button>
           <button class="btn btn-ghost btn-sm" onclick="saveAsDraft('repurpose')">Save as draft</button>
         </div>
+      </div>
+    </div>
+
+    <!-- IMAGE LIBRARY -->
+    <div id="view-images" class="view" style="display:none">
+      <div class="card">
+        <h2>🖼️ Image library</h2>
+        <p class="meta">Upload your photos and images. ContentIQ uses AI vision to tag each one automatically, then matches the best image to any post you generate.</p>
+
+        <div class="img-upload-zone" id="upload-zone" onclick="document.getElementById('img-file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+          <div class="upload-icon">📸</div>
+          <p><strong>Click to upload</strong> or drag and drop images here</p>
+          <p style="margin-top:4px;font-size:12px">JPG, PNG, WEBP — multiple files supported</p>
+        </div>
+        <input type="file" id="img-file-input" accept="image/jpeg,image/png,image/webp" multiple style="display:none" onchange="handleFileSelect(event)">
+
+        <div id="upload-progress-list"></div>
+      </div>
+
+      <div id="img-library-card" class="card" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div>
+            <h2 style="margin-bottom:0">Your images <span id="img-count" style="font-size:13px;color:var(--muted);font-weight:500"></span></h2>
+          </div>
+          <input type="text" id="img-search" placeholder="Search tags…" style="width:200px" oninput="renderImageGrid()">
+        </div>
+        <div class="img-grid" id="img-grid"></div>
       </div>
     </div>
 
@@ -697,6 +753,7 @@ async function selectWorkspace(id, name) {
   localStorage.setItem('ws_id', id);
   document.getElementById('ws-name').textContent = name;
   await loadBrandDoc(); await loadPosts(); await loadScans();
+  state.images = [];
   refreshDashboard();
 }
 
@@ -1384,7 +1441,7 @@ function saveSettings() {
 // ============================================================
 // ROUTER
 // ============================================================
-const viewTitles = { dashboard:'Dashboard', brand:'Brand Hub', generate:'Generate Content', power:'Power Content Studio', repurpose:'Repurpose Engine', scanner:'Social Scanner', history:'Post History', settings:'Settings' };
+const viewTitles = { dashboard:'Dashboard', brand:'Brand Hub', generate:'Generate Content', power:'Power Content Studio', repurpose:'Repurpose Engine', images:'Image Library', scanner:'Social Scanner', history:'Post History', settings:'Settings' };
 
 function setupRouter() { window.addEventListener('hashchange', routeFromHash); routeFromHash(); }
 
@@ -1411,6 +1468,7 @@ function showView(name) {
   }
   if (name === 'history') renderHistory();
   if (name === 'dashboard') refreshDashboard();
+  if (name === 'images') initImageLibrary();
 }
 
 // ============================================================
@@ -1430,6 +1488,200 @@ async function callClaude(prompt, maxTokens = 1000) {
     toast('Network error — is the Vercel function running?', 'error');
     return null;
   }
+}
+
+// ============================================================
+// IMAGE LIBRARY
+// ============================================================
+async function initImageLibrary() {
+  // Ensure storage bucket exists
+  const { error } = await sb.storage.createBucket('images', { public: true });
+  // error is expected if bucket already exists — ignore
+  await loadImages();
+}
+
+async function loadImages() {
+  const { data } = await sb.from('images').select('*').eq('workspace_id', state.workspaceId).order('created_at', { ascending: false });
+  state.images = data || [];
+  renderImageGrid();
+  const card = document.getElementById('img-library-card');
+  if (card) card.style.display = state.images.length ? 'block' : 'none';
+}
+
+function renderImageGrid() {
+  const el = document.getElementById('img-grid');
+  const count = document.getElementById('img-count');
+  if (!el) return;
+  const search = (document.getElementById('img-search')?.value || '').toLowerCase();
+  const imgs = (state.images || []).filter(img => {
+    if (!search) return true;
+    const tags = (img.tags || []).join(' ').toLowerCase();
+    return tags.includes(search) || (img.description || '').toLowerCase().includes(search) || (img.suitable_for || '').toLowerCase().includes(search);
+  });
+  if (count) count.textContent = `(${state.images.length} images)`;
+  if (!imgs.length) { el.innerHTML = '<p style="color:var(--muted);font-size:13px;grid-column:1/-1">No images yet — upload some above.</p>'; return; }
+  el.innerHTML = imgs.map(img => `
+    <div class="img-card" id="imgcard-${img.id}">
+      <img src="${img.public_url}" alt="${img.filename || ''}" loading="lazy">
+      <div class="img-meta">
+        <div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${img.filename || 'Image'}</div>
+        <div class="img-tags">${(img.tags || []).slice(0,4).map(t => `<span class="img-tag">${t}</span>`).join('')}</div>
+      </div>
+      <button class="img-del" onclick="deleteImage('${img.id}','${img.storage_path}',event)">✕</button>
+    </div>`).join('');
+  document.getElementById('img-library-card').style.display = 'block';
+}
+
+function handleDragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('drag-over'); }
+function handleDragLeave(e) { document.getElementById('upload-zone').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag-over');
+  const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+  if (files.length) uploadImages(files);
+}
+function handleFileSelect(e) {
+  const files = [...e.target.files];
+  if (files.length) uploadImages(files);
+  e.target.value = '';
+}
+
+async function uploadImages(files) {
+  const progressEl = document.getElementById('upload-progress-list');
+
+  for (const file of files) {
+    const progId = 'prog-' + Math.random().toString(36).slice(2);
+    progressEl.innerHTML += `<div class="upload-progress" id="${progId}"><span class="spinner"></span><span class="prog-name">${file.name}</span><span style="color:var(--muted);font-size:12px">Uploading…</span></div>`;
+
+    // 1. Upload to Supabase Storage
+    const path = `${state.workspaceId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    const { error: upErr } = await sb.storage.from('images').upload(path, file, { upsert: false });
+    if (upErr) { updateProgress(progId, '❌ Upload failed'); continue; }
+
+    // 2. Get public URL
+    const { data: urlData } = sb.storage.from('images').getPublicUrl(path);
+    const publicUrl = urlData.publicUrl;
+
+    updateProgress(progId, '🔍 Analysing with AI…');
+
+    // 3. Tag with Claude Vision
+    let meta = { description: 'Image from library', tags: [], mood: '', suitable_for: '' };
+    try {
+      const visionResult = await callClaudeVision(publicUrl,
+        `You are tagging images for a fitness/personal training business content library.
+Describe this image and return ONLY valid JSON:
+{
+  "description": "one sentence describing what's in the image",
+  "tags": ["5-8 descriptive tags: subject, setting, mood, colours, activity — lowercase"],
+  "mood": "one word mood: energetic / calm / motivational / professional / candid / celebratory",
+  "suitable_for": "which type of post this suits best: awareness / results / method / action / general"
+}`);
+      if (visionResult) meta = JSON.parse(visionResult.match(/\{[\s\S]*\}/)[0]);
+    } catch(e) { /* vision failed, use defaults */ }
+
+    // 4. Save metadata to DB
+    const { data: saved } = await sb.from('images').insert({
+      workspace_id: state.workspaceId,
+      storage_path: path,
+      public_url: publicUrl,
+      filename: file.name,
+      description: meta.description,
+      tags: meta.tags,
+      mood: meta.mood,
+      suitable_for: meta.suitable_for,
+    }).select().single();
+
+    if (saved) { state.images.unshift(saved); renderImageGrid(); }
+    document.getElementById(progId)?.remove();
+  }
+}
+
+function updateProgress(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = `<span>${msg}</span>`;
+  if (msg.startsWith('❌')) setTimeout(() => el.remove(), 3000);
+}
+
+async function deleteImage(id, path, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this image?')) return;
+  await sb.storage.from('images').remove([path]);
+  await sb.from('images').delete().eq('id', id);
+  state.images = state.images.filter(i => i.id !== id);
+  renderImageGrid();
+  toast('Image deleted');
+}
+
+async function findMatchingImage(source) {
+  if (!state.images || !state.images.length) {
+    toast('No images in library — upload some in Image Library first', 'error');
+    return;
+  }
+
+  const data = source === 'power' ? state.lastPower : state.lastGenerated;
+  if (!data) return toast('Generate a post first', 'error');
+
+  const outputEl = document.getElementById(`${source === 'power' ? 'pow' : 'gen'}-image-match`);
+  outputEl.style.display = 'block';
+  outputEl.innerHTML = '<div style="padding:12px;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px"><span class="spinner"></span> Finding best matching image…</div>';
+
+  const postText = JSON.stringify(data.content).slice(0, 800);
+  const imageList = state.images.map((img, i) =>
+    `${i}: id=${img.id} | description="${img.description}" | tags=${(img.tags||[]).join(',')} | mood=${img.mood} | suitable_for=${img.suitable_for}`
+  ).join('\n');
+
+  const result = await callClaude(`You are matching images to social media posts for a fitness business.
+
+POST CONTENT:
+${postText}
+
+AVAILABLE IMAGES:
+${imageList}
+
+Pick the single best matching image for this post. Consider: relevance of description to post topic, mood match, suitable_for alignment.
+
+Return ONLY valid JSON: {"index": <number>, "reason": "one sentence why this image fits this post"}`, 200);
+
+  if (!result) { outputEl.innerHTML = ''; return; }
+
+  let pick;
+  try { pick = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
+  catch { outputEl.innerHTML = ''; return; }
+
+  const img = state.images[pick.index];
+  if (!img) { outputEl.innerHTML = '<p style="color:var(--muted);padding:12px;font-size:13px">No good match found in your library.</p>'; return; }
+
+  outputEl.innerHTML = `
+    <div class="match-result">
+      <img src="${img.public_url}" alt="${img.filename}">
+      <div class="match-info">
+        <h4>✓ Best match found</h4>
+        <p style="margin-bottom:6px">${pick.reason}</p>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">${(img.tags||[]).map(t=>`<span class="img-tag">${t}</span>`).join('')}</div>
+        <a href="${img.public_url}" target="_blank" class="btn btn-ghost btn-sm">Open full size ↗</a>
+      </div>
+    </div>`;
+}
+
+async function callClaudeVision(imageUrl, prompt) {
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'url', url: imageUrl } },
+          { type: 'text', text: prompt }
+        ]}],
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.content?.[0]?.text || null;
+  } catch { return null; }
 }
 
 // ============================================================
