@@ -164,6 +164,27 @@ textarea{resize:vertical;min-height:90px}
 .insight-card h4{font-size:13px;font-weight:700;margin-bottom:5px;color:var(--accent)}
 .insight-card p{font-size:13.5px;color:var(--text);line-height:1.65}
 
+/* IDEAS PANEL */
+.gen-layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
+.ideas-panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;position:sticky;top:20px}
+.ideas-panel h3{font-size:15px;font-weight:700;margin-bottom:4px}
+.ideas-panel .sub{font-size:12px;color:var(--muted);margin-bottom:14px}
+.idea-item{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:.15s}
+.idea-item:hover{border-color:var(--accent)}
+.idea-item .idea-stage{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.idea-item .idea-stage.awareness{color:#f97316}
+.idea-item .idea-stage.information{color:#3b82f6}
+.idea-item .idea-stage.action{color:#22c55e}
+.idea-item .idea-hook{font-size:13px;color:var(--text);line-height:1.5;margin-bottom:8px}
+.idea-item .use-btn{font-size:11px;color:var(--accent);font-weight:700;background:none;border:none;cursor:pointer;padding:0}
+.idea-item .use-btn:hover{text-decoration:underline}
+.ideas-empty{text-align:center;padding:30px 0;color:var(--muted);font-size:13px}
+.pdf-upload-area{border:2px dashed var(--line);border-radius:12px;padding:24px;text-align:center;cursor:pointer;margin-bottom:12px;transition:.15s}
+.pdf-upload-area:hover{border-color:var(--accent);background:rgba(249,115,22,.04)}
+.pdf-upload-area.has-file{border-color:var(--success);background:rgba(34,197,94,.05)}
+
+@media(max-width:1100px){.gen-layout{grid-template-columns:1fr}.ideas-panel{position:static}}
+
 /* C3 BANNER */
 .c3-banner{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
 .c3-stage{text-align:center;flex:1}
@@ -266,10 +287,26 @@ textarea{resize:vertical;min-height:90px}
     <div id="view-brand" class="view" style="display:none">
       <div class="card">
         <h2>Brand document</h2>
-        <p class="meta">Paste your brand guide, tone of voice, audience description, or any business notes. ContentIQ extracts your Ideal Client Profile and uses it in every piece of content.</p>
+        <p class="meta">Upload a PDF brand guide or paste text. ContentIQ extracts your Ideal Client Profile and uses it as the foundation for every piece of content.</p>
+
+        <!-- PDF Upload -->
+        <div class="pdf-upload-area" id="pdf-drop-zone" onclick="document.getElementById('brand-pdf-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" ondragleave="this.style.borderColor=''" ondrop="handleBrandPdfDrop(event)">
+          <div id="pdf-upload-state">
+            <div style="font-size:28px;margin-bottom:6px">📄</div>
+            <p style="font-size:13.5px;color:var(--text);font-weight:600">Upload brand document PDF</p>
+            <p style="font-size:12px;color:var(--muted);margin-top:2px">Click or drag & drop — PDF files only</p>
+          </div>
+        </div>
+        <input type="file" id="brand-pdf-input" accept="application/pdf" style="display:none" onchange="handleBrandPdfSelect(event)">
+
+        <div style="display:flex;align-items:center;gap:10px;margin:12px 0">
+          <div style="flex:1;height:1px;background:var(--line)"></div>
+          <span style="font-size:12px;color:var(--muted)">or paste text</span>
+          <div style="flex:1;height:1px;background:var(--line)"></div>
+        </div>
+
         <div class="field">
-          <label>Paste your brand document</label>
-          <textarea id="brand-raw" rows="10" placeholder="Paste your brand guide here — who you help, their problems, your offer, tone of voice, content pillars, competitors, what makes you different, client pain points, desired outcomes…"></textarea>
+          <textarea id="brand-raw" rows="6" placeholder="Paste your brand guide here — who you help, their problems, your offer, tone of voice, content pillars, competitors, client pain points, desired outcomes…"></textarea>
         </div>
         <button class="btn btn-primary" onclick="extractBrand()">
           <span id="brand-btn-text">🔍 Extract & save brand profile</span>
@@ -303,6 +340,9 @@ textarea{resize:vertical;min-height:90px}
       <div id="no-brand-warn" class="warn-box" style="display:none">
         ⚠️ No brand profile saved. <a href="#/brand" onclick="showView('brand')" style="color:var(--accent)">Set one up first →</a>
       </div>
+
+      <div class="gen-layout">
+      <div><!-- LEFT COLUMN -->
 
       <!-- Stage selector -->
       <div class="stage-grid">
@@ -449,6 +489,26 @@ textarea{resize:vertical;min-height:90px}
         </div>
         <div id="gen-image-match" style="display:none"></div>
       </div>
+
+      </div><!-- END LEFT COLUMN -->
+
+      <!-- RIGHT COLUMN — Ideas Panel -->
+      <div class="ideas-panel">
+        <h3>💡 Content ideas</h3>
+        <p class="sub">AI-generated ideas from your brand profile. Click any to load it into the generator.</p>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:14px" onclick="generateIdeas()">
+          <span id="ideas-btn-text">✨ Generate ideas</span>
+          <span id="ideas-spinner" style="display:none" class="spinner"></span>
+        </button>
+        <div id="ideas-list">
+          <div class="ideas-empty">
+            <div style="font-size:28px;margin-bottom:6px">💡</div>
+            Set up your brand profile then hit<br>"Generate ideas" to get started
+          </div>
+        </div>
+      </div>
+
+      </div><!-- END gen-layout -->
     </div>
 
     <!-- POWER CONTENT -->
@@ -690,9 +750,9 @@ Gym tip of the week: make sure you're hitting protein targets..."></textarea>
 let sb = null;
 let state = {
   workspaceId: null, workspaceName: null, workspaces: [],
-  brandDoc: null, posts: [], scans: [],
+  brandDoc: null, posts: [], scans: [], images: [],
   lastGenerated: null, lastPower: null, lastRepurpose: null,
-  currentStage: 'awareness', currentRegen: null,
+  currentStage: 'awareness', currentRegen: null, currentIdeas: [],
 };
 
 // ============================================================
@@ -1488,6 +1548,150 @@ async function callClaude(prompt, maxTokens = 1000) {
     toast('Network error — is the Vercel function running?', 'error');
     return null;
   }
+}
+
+// ============================================================
+// PDF BRAND UPLOAD
+// ============================================================
+function handleBrandPdfDrop(e) {
+  e.preventDefault();
+  const file = [...e.dataTransfer.files].find(f => f.type === 'application/pdf');
+  if (file) processBrandPdf(file);
+}
+function handleBrandPdfSelect(e) {
+  const file = e.target.files[0];
+  if (file) processBrandPdf(file);
+  e.target.value = '';
+}
+
+async function processBrandPdf(file) {
+  const zone = document.getElementById('pdf-drop-zone');
+  const stateEl = document.getElementById('pdf-upload-state');
+  stateEl.innerHTML = `<span class="spinner"></span><p style="font-size:13px;color:var(--muted);margin-top:8px">Reading PDF…</p>`;
+
+  // Read file as base64
+  const base64 = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  // Send to Claude as a document
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: [
+          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
+          { type: 'text', text: 'Extract the full text content from this brand document. Return all meaningful text exactly as it appears, preserving the structure. Do not summarise — return the raw content.' }
+        ]}],
+      }),
+    });
+    const data = await res.json();
+    const extracted = data.content?.[0]?.text || '';
+    if (extracted) {
+      document.getElementById('brand-raw').value = extracted;
+      zone.classList.add('has-file');
+      stateEl.innerHTML = `<div style="font-size:20px">✅</div><p style="font-size:13px;color:var(--success);font-weight:600;margin-top:4px">${file.name}</p><p style="font-size:11px;color:var(--muted)">Text extracted — click "Extract & save" below</p>`;
+      toast('PDF read successfully — click Extract & save', 'success');
+    } else {
+      throw new Error('No text extracted');
+    }
+  } catch (err) {
+    stateEl.innerHTML = `<div style="font-size:20px">❌</div><p style="font-size:13px;color:var(--danger);margin-top:4px">Could not read PDF — try pasting the text instead</p>`;
+  }
+}
+
+// ============================================================
+// IDEAS PANEL
+// ============================================================
+async function generateIdeas() {
+  if (!state.brandDoc) return toast('Save your brand profile first', 'error');
+  setLoading('ideas-btn-text', 'ideas-spinner', true);
+
+  const brand = getBrandContext();
+  const result = await callClaude(`You are a content strategist for a fitness/coaching business using the C³ Method (Content → Conversations → Consultations).
+
+${brand}
+
+Generate 15 specific, scroll-stopping content ideas across all three buyer stages. Make every idea concrete and tailored to this exact business and audience — no generic topics.
+
+Return ONLY valid JSON:
+{
+  "ideas": [
+    {
+      "stage": "awareness|information|action",
+      "format": "post|video-script|hook-list|results|method|shopwindow|two-step|offer",
+      "hook": "the scroll-stopping opening line or content angle (1-2 sentences, specific)",
+      "problem": "the specific pain point or topic this addresses"
+    }
+  ]
+}
+
+Distribute: 6 awareness, 5 information, 4 action. Make each hook feel specific and emotionally accurate for the ideal client.`, 2000);
+
+  setLoading('ideas-btn-text', 'ideas-spinner', false, '✨ Generate ideas');
+  if (!result) return;
+
+  let parsed;
+  try { parsed = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
+  catch { return toast('Could not parse ideas — try again', 'error'); }
+
+  state.currentIdeas = parsed.ideas || [];
+  renderIdeas();
+}
+
+function renderIdeas() {
+  const el = document.getElementById('ideas-list');
+  if (!state.currentIdeas || !state.currentIdeas.length) {
+    el.innerHTML = '<div class="ideas-empty">No ideas yet — click Generate ideas</div>';
+    return;
+  }
+  el.innerHTML = state.currentIdeas.map((idea, i) => `
+    <div class="idea-item" onclick="useIdea(${i})">
+      <div class="idea-stage ${idea.stage}">${stageIcon(idea.stage)} ${idea.stage}</div>
+      <div class="idea-hook">${idea.hook}</div>
+      <button class="use-btn" onclick="useIdea(${i});event.stopPropagation()">Use this idea →</button>
+    </div>`).join('');
+}
+
+function stageIcon(s) { return s === 'awareness' ? '📢' : s === 'information' ? '🔍' : '🎯'; }
+
+function useIdea(index) {
+  const idea = state.currentIdeas[index];
+  if (!idea) return;
+
+  // Switch to correct stage
+  const stage = ['results','method','shopwindow'].includes(idea.format) ? 'information'
+               : ['two-step','offer','poll','dm-script'].includes(idea.format) ? 'action'
+               : 'awareness';
+  selectStage(stage);
+
+  // Populate the right field
+  if (stage === 'awareness') {
+    setVal('aw-problem', idea.problem || idea.hook);
+    // pick matching format
+    const fmtMap = { 'video-script': 'video-script', 'hook-list': 'hook-list', 'myth': 'myth' };
+    const fmt = fmtMap[idea.format] || 'post';
+    document.getElementById('aw-format').value = fmt;
+  } else if (stage === 'information') {
+    const typeMap = { results: 'results', method: 'method', shopwindow: 'shopwindow' };
+    document.getElementById('info-type').value = typeMap[idea.format] || 'method';
+    updateInfoFields();
+    if (idea.format === 'method') setVal('info-myth', idea.problem || '');
+    if (idea.format === 'results') setVal('info-result', idea.problem || '');
+  } else {
+    const typeMap = { 'two-step': 'two-step', offer: 'offer', poll: 'poll' };
+    document.getElementById('act-type').value = typeMap[idea.format] || 'two-step';
+  }
+
+  // Scroll to generator
+  document.getElementById('sub-' + stage)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  toast('Idea loaded — fill in any extra details and generate ✓', 'success');
 }
 
 // ============================================================
