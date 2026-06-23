@@ -1090,6 +1090,21 @@ async function extractBrand() {
   if (!raw) return toast('Paste your brand document first', 'error');
   setLoading('brand-btn-text', 'brand-spinner', true);
 
+  // Save the raw text immediately so state.brandDoc is set even if extraction is slow
+  const rawPayload = { raw_text: raw, workspace_id: state.workspaceId, updated_at: new Date().toISOString() };
+  if (state.brandDoc) {
+    const { error } = await sb.from('brand_docs').update(rawPayload).eq('id', state.brandDoc.id);
+    if (error) { setLoading('brand-btn-text', 'brand-spinner', false, '🔍 Extract & save brand profile'); return toast('Save failed: ' + error.message, 'error'); }
+    state.brandDoc = { ...state.brandDoc, ...rawPayload };
+  } else {
+    const { data, error } = await sb.from('brand_docs').insert(rawPayload).select().single();
+    if (error) { setLoading('brand-btn-text', 'brand-spinner', false, '🔍 Extract & save brand profile'); return toast('Save failed: ' + error.message, 'error'); }
+    state.brandDoc = data;
+  }
+
+  // Send only first 12,000 chars to Claude — enough to extract brand info without timeout
+  const excerpt = raw.length > 12000 ? raw.slice(0, 12000) + '\n[document continues…]' : raw;
+
   const result = await callClaude(`You are a brand strategist. Extract structured information from this brand document and return ONLY valid JSON:
 {
   "business_name": "string",
@@ -1102,25 +1117,23 @@ async function extractBrand() {
   "buying_triggers": "string — what pushes them to finally take action",
   "competitors": "string — competitors and what makes this business different"
 }
-Brand document:\n${raw}`, 1200);
+Brand document:\n${excerpt}`, 1200);
 
   setLoading('brand-btn-text', 'brand-spinner', false, '🔍 Extract & save brand profile');
-  if (!result) return;
+
+  if (!result) {
+    toast('Raw text saved — Claude could not extract fields. Edit the profile manually below.', 'info');
+    document.getElementById('brand-profile').style.display = 'block';
+    return;
+  }
 
   let parsed;
   try { parsed = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
-  catch { return toast('Could not parse brand data — try rewording your document', 'error'); }
+  catch { toast('Raw text saved — could not parse extracted fields. Fill them in manually below.', 'info'); document.getElementById('brand-profile').style.display = 'block'; return; }
 
-  const payload = { ...parsed, raw_text: raw, workspace_id: state.workspaceId, updated_at: new Date().toISOString() };
-  if (state.brandDoc) {
-    const { error } = await sb.from('brand_docs').update(payload).eq('id', state.brandDoc.id);
-    if (error) return toast('Save failed: ' + error.message, 'error');
-    state.brandDoc = { ...state.brandDoc, ...payload };
-  } else {
-    const { data, error } = await sb.from('brand_docs').insert(payload).select().single();
-    if (error) return toast('Save failed: ' + error.message, 'error');
-    state.brandDoc = data;
-  }
+  const payload = { ...parsed, raw_text: raw, updated_at: new Date().toISOString() };
+  await sb.from('brand_docs').update(payload).eq('id', state.brandDoc.id);
+  state.brandDoc = { ...state.brandDoc, ...payload };
 
   populateBrandFields(parsed);
   document.getElementById('brand-profile').style.display = 'block';
