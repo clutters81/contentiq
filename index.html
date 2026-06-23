@@ -1106,8 +1106,15 @@ Brand document:\n${raw}`, 1200);
   catch { return toast('Could not parse brand data — try rewording your document', 'error'); }
 
   const payload = { ...parsed, raw_text: raw, workspace_id: state.workspaceId, updated_at: new Date().toISOString() };
-  if (state.brandDoc) await sb.from('brand_docs').update(payload).eq('id', state.brandDoc.id);
-  else { const { data } = await sb.from('brand_docs').insert(payload).select().single(); state.brandDoc = data; }
+  if (state.brandDoc) {
+    const { error } = await sb.from('brand_docs').update(payload).eq('id', state.brandDoc.id);
+    if (error) return toast('Save failed: ' + error.message, 'error');
+    state.brandDoc = { ...state.brandDoc, ...payload };
+  } else {
+    const { data, error } = await sb.from('brand_docs').insert(payload).select().single();
+    if (error) return toast('Save failed: ' + error.message, 'error');
+    state.brandDoc = data;
+  }
 
   populateBrandFields(parsed);
   document.getElementById('brand-profile').style.display = 'block';
@@ -1123,8 +1130,15 @@ async function saveBrandProfile() {
     buying_triggers: getVal('b-triggers'), competitors: getVal('b-comp'),
     updated_at: new Date().toISOString(),
   };
-  if (state.brandDoc) await sb.from('brand_docs').update(payload).eq('id', state.brandDoc.id);
-  else { const { data } = await sb.from('brand_docs').insert({ ...payload, workspace_id: state.workspaceId }).select().single(); state.brandDoc = data; }
+  if (state.brandDoc) {
+    const { error } = await sb.from('brand_docs').update(payload).eq('id', state.brandDoc.id);
+    if (error) return toast('Save failed: ' + error.message, 'error');
+    state.brandDoc = { ...state.brandDoc, ...payload };
+  } else {
+    const { data, error } = await sb.from('brand_docs').insert({ ...payload, workspace_id: state.workspaceId }).select().single();
+    if (error) return toast('Save failed: ' + error.message, 'error');
+    state.brandDoc = data;
+  }
   toast('Brand profile saved ✓', 'success');
 }
 
