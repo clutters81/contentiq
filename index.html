@@ -185,6 +185,64 @@ textarea{resize:vertical;min-height:90px}
 
 @media(max-width:1100px){.gen-layout{grid-template-columns:1fr}.ideas-panel{position:static}}
 
+/* MONTHLY PLANNER */
+.planner-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-day-header{text-align:center;font-size:11px;font-weight:700;color:var(--muted);padding:4px 0;text-transform:uppercase;letter-spacing:.05em}
+.cal-day{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px;min-height:90px;cursor:pointer;transition:.15s;position:relative}
+.cal-day:hover{border-color:var(--accent)}
+.cal-day.empty{background:transparent;border-color:transparent;cursor:default}
+.cal-day .day-num{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.cal-day .day-stage{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:2px 6px;border-radius:999px;display:inline-block;margin-bottom:4px}
+.cal-day .day-stage.awareness{background:#431407;color:#f97316}
+.cal-day .day-stage.information{background:#1e3a5f;color:#60a5fa}
+.cal-day .day-stage.action{background:#14532d;color:#22c55e}
+.cal-day .day-hook{font-size:11px;color:var(--text);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.cal-day.rest{opacity:.4}
+
+/* BULK GENERATOR */
+.bulk-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.bulk-card{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:16px}
+.bulk-card .day-label{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.bulk-card h4{font-size:14px;font-weight:700;margin-bottom:4px}
+.bulk-card .bulk-preview{font-size:12.5px;color:var(--muted);line-height:1.6;white-space:pre-wrap;max-height:100px;overflow:hidden;margin-bottom:10px}
+.bulk-card .bulk-actions{display:flex;gap:7px}
+
+/* DM SCRIPTS */
+.dm-layout{display:grid;grid-template-columns:220px 1fr;gap:16px;align-items:start}
+.keyword-list{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.keyword-item{padding:11px 16px;cursor:pointer;font-size:13.5px;font-weight:600;border-bottom:1px solid var(--line);transition:.1s;display:flex;align-items:center;justify-content:space-between}
+.keyword-item:last-child{border-bottom:none}
+.keyword-item:hover{background:var(--card2);color:var(--accent)}
+.keyword-item.active{background:var(--card2);color:var(--accent)}
+.keyword-item .kw-badge{font-size:10px;background:var(--line);padding:2px 7px;border-radius:999px;color:var(--muted)}
+.script-block{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+.script-block h4{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.script-block pre{white-space:pre-wrap;font-family:inherit;font-size:13.5px;line-height:1.7;color:var(--text)}
+
+/* CONTENT SCORER */
+.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.score-card{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px}
+.score-card .sc-label{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+.score-bar-wrap{background:var(--line);border-radius:999px;height:8px;margin-bottom:6px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:999px;background:var(--accent);transition:.5s}
+.score-bar-fill.high{background:var(--success)}
+.score-bar-fill.mid{background:#f59e0b}
+.score-bar-fill.low{background:var(--danger)}
+.sc-num{font-size:22px;font-weight:800;color:var(--text)}
+.sc-num span{font-size:13px;color:var(--muted)}
+.grade-badge{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;flex-shrink:0}
+.grade-A{background:#14532d;color:var(--success)}
+.grade-B{background:#1e3a5f;color:#60a5fa}
+.grade-C{background:#422006;color:#f59e0b}
+.grade-D,.grade-F{background:#450a0a;color:var(--danger)}
+.scorer-summary{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;gap:16px;align-items:center;margin-bottom:16px}
+
+/* WHITE-LABEL */
+.wl-preview{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:14px}
+.wl-preview .wl-logo{font-size:22px;font-weight:800;letter-spacing:-0.03em;margin-bottom:4px}
+.color-swatch{width:32px;height:32px;border-radius:8px;border:2px solid var(--line);cursor:pointer;display:inline-block}
+
 /* C3 BANNER */
 .c3-banner{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
 .c3-stage{text-align:center;flex:1}
@@ -232,7 +290,11 @@ textarea{resize:vertical;min-height:90px}
     <a href="#/power" class="nav-link" data-view="power"><span class="icon">⚡</span> Power Content</a>
     <a href="#/repurpose" class="nav-link" data-view="repurpose"><span class="icon">♻️</span> Repurpose Engine</a>
     <a href="#/images" class="nav-link" data-view="images"><span class="icon">🖼️</span> Image Library</a>
+    <a href="#/planner" class="nav-link" data-view="planner"><span class="icon">📅</span> Monthly Planner</a>
+    <a href="#/bulk" class="nav-link" data-view="bulk"><span class="icon">⚡</span> Bulk Generator</a>
     <div class="nav-section">Review</div>
+    <a href="#/scorer" class="nav-link" data-view="scorer"><span class="icon">🎯</span> Content Scorer</a>
+    <a href="#/dm" class="nav-link" data-view="dm"><span class="icon">💬</span> DM Scripts</a>
     <a href="#/scanner" class="nav-link" data-view="scanner"><span class="icon">🔬</span> Social Scanner</a>
     <a href="#/history" class="nav-link" data-view="history"><span class="icon">📂</span> Post History</a>
   </nav>
@@ -645,6 +707,120 @@ textarea{resize:vertical;min-height:90px}
       </div>
     </div>
 
+    <!-- MONTHLY PLANNER -->
+    <div id="view-planner" class="view" style="display:none">
+      <div class="card">
+        <h2>📅 Monthly content planner</h2>
+        <p class="meta">Generate a full month of content ideas mapped to the C³ framework — Awareness, Information, and Action posts balanced across every week.</p>
+        <div class="planner-header">
+          <select id="plan-month" style="width:160px"></select>
+          <select id="plan-year" style="width:100px"></select>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="margin:0;white-space:nowrap">Posts per week</label>
+            <select id="plan-freq" style="width:80px">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="7">7</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="generateMonthlyPlan()">
+            📅 Generate plan
+            <span id="plan-spinner" style="display:none" class="spinner"></span>
+          </button>
+          <button class="btn btn-ghost btn-sm" id="plan-export-btn" style="display:none" onclick="exportPlan()">↓ Export</button>
+        </div>
+        <div id="plan-output" style="display:none">
+          <div class="cal-grid" id="cal-day-headers"></div>
+          <div class="cal-grid" id="cal-grid" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BULK GENERATOR -->
+    <div id="view-bulk" class="view" style="display:none">
+      <div class="card">
+        <h2>⚡ Bulk week generator</h2>
+        <p class="meta">Generate a full week of content across all three buyer stages in one click. Review each post, approve the ones you want, and save them all to history.</p>
+        <div class="row" style="margin-bottom:14px">
+          <div class="field">
+            <label>Week focus / theme (optional)</label>
+            <input id="bulk-theme" type="text" placeholder="e.g. New Year motivation, Summer body, Back to basics">
+          </div>
+          <div class="field">
+            <label>Primary platform</label>
+            <select id="bulk-platform">
+              <option>Facebook</option><option>Instagram</option><option>LinkedIn</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="btn btn-primary" onclick="generateBulkWeek()">
+            ⚡ Generate 7 posts
+            <span id="bulk-spinner" style="display:none" class="spinner"></span>
+          </button>
+          <button class="btn btn-ghost btn-sm" id="bulk-approve-all" style="display:none" onclick="approveAllBulk()">✓ Approve all</button>
+        </div>
+      </div>
+      <div id="bulk-output" style="display:none">
+        <div class="bulk-grid" id="bulk-grid"></div>
+      </div>
+    </div>
+
+    <!-- CONTENT SCORER -->
+    <div id="view-scorer" class="view" style="display:none">
+      <div class="card">
+        <h2>🎯 Content scorer</h2>
+        <p class="meta">Paste any post before publishing. ContentIQ scores it across 5 dimensions and gives specific improvement suggestions so only your best content goes out.</p>
+        <div class="field">
+          <label>Paste your post or script</label>
+          <textarea id="scorer-input" rows="8" placeholder="Paste the full post, caption, or script you want to score…"></textarea>
+        </div>
+        <div class="field">
+          <label>Content stage</label>
+          <select id="scorer-stage">
+            <option value="awareness">Awareness</option>
+            <option value="information">Information</option>
+            <option value="action">Action</option>
+            <option value="power">Power / Direct response</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="scoreContent()">
+          🎯 Score this content
+          <span id="scorer-spinner" style="display:none" class="spinner"></span>
+        </button>
+      </div>
+      <div id="scorer-output" style="display:none">
+        <div class="scorer-summary" id="scorer-summary"></div>
+        <div class="score-grid" id="score-grid"></div>
+        <div class="card" id="scorer-feedback" style="margin-top:0"></div>
+      </div>
+    </div>
+
+    <!-- DM SCRIPTS -->
+    <div id="view-dm" class="view" style="display:none">
+      <div class="card" style="margin-bottom:16px">
+        <h2>💬 DM script builder</h2>
+        <p class="meta">Auto-generate full conversation playbooks for every keyword trigger. Each script covers the initial reply, a follow-up, and discovery questions to qualify and book consultations.</p>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div class="field" style="flex:1;margin-bottom:0">
+            <label>Add keyword</label>
+            <input id="dm-keyword-input" type="text" placeholder="e.g. INFO, START, RESET, PLAN" onkeydown="if(event.key==='Enter')addDmKeyword()">
+          </div>
+          <button class="btn btn-ghost" onclick="addDmKeyword()">+ Add</button>
+          <button class="btn btn-primary" onclick="generateAllDmScripts()">
+            💬 Generate all scripts
+            <span id="dm-spinner" style="display:none" class="spinner"></span>
+          </button>
+        </div>
+      </div>
+      <div class="dm-layout" id="dm-layout">
+        <div class="keyword-list" id="dm-keyword-list"></div>
+        <div id="dm-script-panel">
+          <div class="empty"><div class="icon">💬</div><p>Add keywords and generate scripts</p></div>
+        </div>
+      </div>
+    </div>
+
     <!-- SOCIAL SCANNER -->
     <div id="view-scanner" class="view" style="display:none">
       <div class="card">
@@ -716,7 +892,27 @@ Gym tip of the week: make sure you're hitting protein targets..."></textarea>
         <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="openNewWsModal()">+ New workspace</button>
       </div>
       <div class="card">
-        <h2>About ContentIQ</h2>
+        <h2>🎨 White-label</h2>
+        <p class="meta">Customise the app with your client's branding. The app will show their name and colours instead of ContentIQ — perfect for reselling as your own service.</p>
+        <div class="row">
+          <div class="field"><label>Brand name (replaces "ContentIQ")</label><input id="wl-name" type="text" placeholder="e.g. 1st4Fitness Content Hub"></div>
+          <div class="field"><label>Tagline</label><input id="wl-tagline" type="text" placeholder="e.g. Your content, on autopilot"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Logo URL (optional)</label><input id="wl-logo" type="url" placeholder="https://…/logo.png"></div>
+          <div class="field"><label>Accent colour</label><input id="wl-colour" type="color" value="#f97316" style="height:42px;padding:4px 6px"></div>
+        </div>
+        <div class="wl-preview" id="wl-preview">
+          <div class="wl-logo" id="wl-preview-name">ContentIQ</div>
+          <div style="font-size:12px;color:var(--muted)" id="wl-preview-tag">AI-powered content creation</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:14px">
+          <button class="btn btn-primary btn-sm" onclick="saveWhiteLabel()">Save white-label</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearWhiteLabel()">Reset to default</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>About</h2>
         <p class="meta">Built on the Hybrid Content Ecosystem — the C³ Method (Content → Conversations → Consultations). Content is structured across 3 buyer stages: Awareness, Information, Action.</p>
         <p class="meta" style="margin-top:8px">To activate AI generation: set <code style="background:var(--card2);padding:2px 6px;border-radius:5px">ANTHROPIC_API_KEY</code> as a Vercel environment variable.</p>
       </div>
@@ -769,6 +965,7 @@ async function init() {
   document.getElementById('setup-view').style.display = 'none';
   document.getElementById('app-shell').style.display = 'flex';
   sb = supabase.createClient(url, key);
+  loadWhiteLabel();
   await loadWorkspaces();
   setupRouter();
 }
@@ -1501,7 +1698,7 @@ function saveSettings() {
 // ============================================================
 // ROUTER
 // ============================================================
-const viewTitles = { dashboard:'Dashboard', brand:'Brand Hub', generate:'Generate Content', power:'Power Content Studio', repurpose:'Repurpose Engine', images:'Image Library', scanner:'Social Scanner', history:'Post History', settings:'Settings' };
+const viewTitles = { dashboard:'Dashboard', brand:'Brand Hub', generate:'Generate Content', power:'Power Content Studio', repurpose:'Repurpose Engine', images:'Image Library', scanner:'Social Scanner', history:'Post History', settings:'Settings', planner:'Monthly Planner', bulk:'Bulk Week Generator', scorer:'Content Scorer', dm:'DM Scripts' };
 
 function setupRouter() { window.addEventListener('hashchange', routeFromHash); routeFromHash(); }
 
@@ -1529,6 +1726,9 @@ function showView(name) {
   if (name === 'history') renderHistory();
   if (name === 'dashboard') refreshDashboard();
   if (name === 'images') initImageLibrary();
+  if (name === 'planner') initPlannerSelects();
+  if (name === 'dm') initDmScripts();
+  if (name === 'settings') initWhiteLabel();
 }
 
 // ============================================================
@@ -1548,6 +1748,457 @@ async function callClaude(prompt, maxTokens = 1000) {
     toast('Network error — is the Vercel function running?', 'error');
     return null;
   }
+}
+
+// ============================================================
+// MONTHLY PLANNER
+// ============================================================
+function initPlannerSelects() {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const mSel = document.getElementById('plan-month');
+  const ySel = document.getElementById('plan-year');
+  if (!mSel || mSel.options.length) return;
+  const now = new Date();
+  months.forEach((m,i) => { const o = new Option(m, i); if(i===now.getMonth()) o.selected=true; mSel.add(o); });
+  for(let y=now.getFullYear(); y<=now.getFullYear()+1; y++) { const o = new Option(y,y); if(y===now.getFullYear()) o.selected=true; ySel.add(o); }
+}
+
+async function generateMonthlyPlan() {
+  if (!state.brandDoc) return toast('Set up your brand profile first', 'error');
+  setLoading(null, 'plan-spinner', true);
+  const month = parseInt(document.getElementById('plan-month').value);
+  const year = parseInt(document.getElementById('plan-year').value);
+  const freq = parseInt(document.getElementById('plan-freq').value);
+  const monthName = ['January','February','March','April','May','June','July','August','September','October','November','December'][month];
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const brand = getBrandContext();
+
+  const result = await callClaude(`You are a content strategist creating a monthly social media calendar.
+
+${brand}
+
+Create a ${monthName} ${year} content plan. ${freq} posts per week = roughly ${Math.round(freq*4.3)} posts for the month.
+Balance across the C³ buyer stages: ~40% Awareness, ~35% Information, ~25% Action.
+
+Return ONLY valid JSON:
+{
+  "posts": [
+    {
+      "day": <1-${daysInMonth}>,
+      "stage": "awareness|information|action",
+      "format": "post|video-script|results|method|two-step|offer",
+      "hook": "the scroll-stopping hook or content angle (1-2 sentences, specific to this brand)",
+      "topic": "3-5 word topic label"
+    }
+  ]
+}
+
+Spread posts across the month. Do not assign posts to every day — only ${freq} per week. Make every hook specific to this business and audience, not generic.`, 3000);
+
+  setLoading(null, 'plan-spinner', false);
+  if (!result) return;
+
+  let parsed;
+  try { parsed = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
+  catch { return toast('Could not parse plan — try again', 'error'); }
+
+  state.currentPlan = { month, year, posts: parsed.posts, daysInMonth };
+  renderCalendar();
+  document.getElementById('plan-output').style.display = 'block';
+  document.getElementById('plan-export-btn').style.display = 'inline-flex';
+}
+
+function renderCalendar() {
+  const { month, year, posts, daysInMonth } = state.currentPlan;
+  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const startOffset = firstDay === 0 ? 6 : firstDay - 1; // Mon-start offset
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const postMap = {};
+  (posts || []).forEach(p => { postMap[p.day] = p; });
+
+  document.getElementById('cal-day-headers').innerHTML = days.map(d => `<div class="cal-day-header">${d}</div>`).join('');
+
+  let html = '';
+  for (let i=0; i<startOffset; i++) html += '<div class="cal-day empty"></div>';
+  for (let d=1; d<=daysInMonth; d++) {
+    const p = postMap[d];
+    if (p) {
+      html += `<div class="cal-day" onclick="openPlanDay(${d})" title="${p.hook}">
+        <div class="day-num">${d}</div>
+        <div class="day-stage ${p.stage}">${p.stage}</div>
+        <div class="day-hook">${p.hook}</div>
+      </div>`;
+    } else {
+      html += `<div class="cal-day rest"><div class="day-num">${d}</div></div>`;
+    }
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+function openPlanDay(day) {
+  const p = state.currentPlan.posts.find(x => x.day === day);
+  if (!p) return;
+  showModal(`
+    <h2 style="margin-bottom:4px">Day ${day} — ${p.topic}</h2>
+    <p class="sub">${p.stage} · ${p.format}</p>
+    <div class="output-block"><h4>Hook / angle</h4><pre>${p.hook}</pre></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary btn-sm" onclick="loadPlanIdea('${p.stage}','${p.format}',\`${p.hook.replace(/`/g,"'")}\`,\`${(p.topic||'').replace(/`/g,"'")}\`);closeModal();showView('generate')">Use this idea →</button>
+    </div>`);
+}
+
+function loadPlanIdea(stage, format, hook, topic) {
+  const mappedStage = ['results','method','shopwindow'].includes(format) ? 'information'
+    : ['two-step','offer'].includes(format) ? 'action' : 'awareness';
+  selectStage(mappedStage);
+  if (mappedStage === 'awareness') { setVal('aw-problem', hook); }
+  else if (mappedStage === 'information') { document.getElementById('info-type').value = format==='results'?'results':format==='shopwindow'?'shopwindow':'method'; updateInfoFields(); }
+  else { document.getElementById('act-type').value = format==='offer'?'offer':'two-step'; }
+}
+
+function exportPlan() {
+  const { month, year, posts } = state.currentPlan;
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  let csv = 'Day,Stage,Format,Topic,Hook\n';
+  (posts||[]).sort((a,b)=>a.day-b.day).forEach(p => {
+    csv += `${p.day},"${p.stage}","${p.format}","${p.topic}","${p.hook.replace(/"/g,"'")}"\n`;
+  });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `content-plan-${months[month]}-${year}.csv`;
+  a.click();
+}
+
+// ============================================================
+// BULK WEEK GENERATOR
+// ============================================================
+async function generateBulkWeek() {
+  if (!state.brandDoc) return toast('Set up your brand profile first', 'error');
+  const theme = getVal('bulk-theme');
+  const platform = document.getElementById('bulk-platform').value;
+  const brand = getBrandContext();
+  setLoading(null, 'bulk-spinner', true);
+  document.getElementById('bulk-output').style.display = 'none';
+
+  const result = await callClaude(`You are a social media content strategist.
+
+${brand}
+
+Generate 7 social media posts for one week${theme ? ' with the theme: "' + theme + '"' : ''}.
+Platform: ${platform}
+
+Distribute: 3 Awareness, 2 Information, 2 Action posts.
+Map them Mon–Sun in that order.
+
+Return ONLY valid JSON:
+{
+  "posts": [
+    {
+      "day": "Monday",
+      "stage": "awareness|information|action",
+      "topic": "short topic label",
+      "post": "the complete ready-to-publish post — scroll-stopping hook, body, CTA. Short paragraphs. No fluff.",
+      "visual": "brief image or video idea to pair with this post"
+    }
+  ]
+}
+
+Make every post specific to this business and audience. British English. No generic advice.`, 4000);
+
+  setLoading(null, 'bulk-spinner', false);
+  if (!result) return;
+
+  let parsed;
+  try { parsed = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
+  catch { return toast('Unexpected response — try again', 'error'); }
+
+  state.bulkPosts = parsed.posts || [];
+  renderBulkGrid();
+  document.getElementById('bulk-output').style.display = 'block';
+  document.getElementById('bulk-approve-all').style.display = 'inline-flex';
+}
+
+function renderBulkGrid() {
+  const stageCol = { awareness:'#f97316', information:'#3b82f6', action:'#22c55e' };
+  document.getElementById('bulk-grid').innerHTML = (state.bulkPosts||[]).map((p,i) => `
+    <div class="bulk-card" id="bulk-card-${i}">
+      <div class="day-label" style="color:${stageCol[p.stage]||'var(--muted)'}">${p.day} · ${p.stage}</div>
+      <h4>${p.topic}</h4>
+      <div class="bulk-preview">${p.post}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">📸 ${p.visual}</div>
+      <div class="bulk-actions">
+        <button class="btn btn-primary btn-sm" onclick="approveBulkPost(${i})">✓ Approve</button>
+        <button class="btn btn-ghost btn-sm" onclick="expandBulkPost(${i})">View full</button>
+      </div>
+    </div>`).join('');
+}
+
+async function approveBulkPost(i) {
+  const p = state.bulkPosts[i];
+  const { data } = await sb.from('posts').insert({
+    workspace_id: state.workspaceId, topic: `${p.day}: ${p.topic}`,
+    platform: document.getElementById('bulk-platform').value,
+    format: 'standard', stage: p.stage, status: 'approved',
+    content: { main: p.post, visualIdea: p.visual }
+  }).select().single();
+  if (data) state.posts.unshift(data);
+  document.getElementById(`bulk-card-${i}`).style.opacity = '0.4';
+  document.querySelector(`#bulk-card-${i} .bulk-actions`).innerHTML = '<span style="font-size:12px;color:var(--success)">✓ Saved</span>';
+  refreshDashboard();
+  toast(`${p.day} post approved`, 'success');
+}
+
+async function approveAllBulk() {
+  for (let i=0; i<(state.bulkPosts||[]).length; i++) await approveBulkPost(i);
+  toast('All 7 posts approved & saved ✓', 'success');
+}
+
+function expandBulkPost(i) {
+  const p = state.bulkPosts[i];
+  showModal(`<h2>${p.day} — ${p.topic}</h2><p class="sub">${p.stage}</p>
+    <div class="output-block"><h4>Post</h4><pre>${p.post}</pre><button class="copy-btn" onclick="navigator.clipboard.writeText(document.querySelector('#modal-body pre').textContent).then(()=>toast('Copied!'))">Copy</button></div>
+    <div class="output-block"><h4>Visual idea</h4><pre>${p.visual}</pre></div>
+    <div class="modal-footer"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="approveBulkPost(${i});closeModal()">✓ Approve</button></div>`);
+}
+
+// ============================================================
+// CONTENT SCORER
+// ============================================================
+async function scoreContent() {
+  const text = getVal('scorer-input');
+  if (!text) return toast('Paste your content first', 'error');
+  const stage = document.getElementById('scorer-stage').value;
+  const brand = getBrandContext();
+  setLoading(null, 'scorer-spinner', true);
+  document.getElementById('scorer-output').style.display = 'none';
+
+  const result = await callClaude(`You are an expert social media content analyst for fitness/coaching businesses.
+
+${brand}
+
+Score this ${stage} stage content across 5 dimensions. Be honest and specific — not generous.
+
+CONTENT TO SCORE:
+${text}
+
+Return ONLY valid JSON:
+{
+  "hook_strength": <1-10>,
+  "emotional_accuracy": <1-10>,
+  "clarity": <1-10>,
+  "cta_strength": <1-10>,
+  "scroll_stop": <1-10>,
+  "overall": <1-10>,
+  "grade": "A|B|C|D|F",
+  "summary": "2-sentence honest overall assessment",
+  "strengths": ["2-3 specific things that work well"],
+  "improvements": ["2-3 specific, actionable improvements with example rewrites where helpful"]
+}`, 1200);
+
+  setLoading(null, 'scorer-spinner', false);
+  if (!result) return;
+
+  let s;
+  try { s = JSON.parse(result.match(/\{[\s\S]*\}/)[0]); }
+  catch { return toast('Unexpected response', 'error'); }
+
+  const gradeClass = `grade-${s.grade}`;
+  document.getElementById('scorer-summary').innerHTML = `
+    <div class="grade-badge ${gradeClass}">${s.grade}</div>
+    <div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:4px">Overall: ${s.overall}/10</div>
+      <div style="font-size:14px;color:var(--muted)">${s.summary}</div>
+    </div>`;
+
+  const dims = [
+    {key:'hook_strength', label:'Hook strength', val:s.hook_strength},
+    {key:'emotional_accuracy', label:'Emotional accuracy', val:s.emotional_accuracy},
+    {key:'clarity', label:'Clarity', val:s.clarity},
+    {key:'cta_strength', label:'CTA strength', val:s.cta_strength},
+    {key:'scroll_stop', label:'Scroll-stop power', val:s.scroll_stop},
+  ];
+  document.getElementById('score-grid').innerHTML = dims.map(d => {
+    const pct = d.val * 10;
+    const cls = d.val >= 8 ? 'high' : d.val >= 6 ? 'mid' : 'low';
+    return `<div class="score-card">
+      <div class="sc-label">${d.label}</div>
+      <div class="sc-num">${d.val}<span>/10</span></div>
+      <div class="score-bar-wrap"><div class="score-bar-fill ${cls}" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('scorer-feedback').innerHTML = `
+    <h2 style="margin-bottom:12px">Feedback</h2>
+    <div style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:8px">✓ What's working</div>
+      ${(s.strengths||[]).map(x=>`<div style="font-size:13.5px;margin-bottom:6px;padding-left:12px;border-left:3px solid var(--success)">• ${x}</div>`).join('')}
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px">↑ Improvements</div>
+      ${(s.improvements||[]).map(x=>`<div style="font-size:13.5px;margin-bottom:8px;padding-left:12px;border-left:3px solid var(--accent)">${x}</div>`).join('')}
+    </div>`;
+
+  document.getElementById('scorer-output').style.display = 'block';
+}
+
+// ============================================================
+// DM SCRIPTS
+// ============================================================
+function initDmScripts() {
+  state.dmKeywords = state.dmKeywords || ['INFO','START','RESET','PLAN','CONSULT'];
+  state.dmScripts = state.dmScripts || {};
+  renderDmKeywords();
+}
+
+function addDmKeyword() {
+  const kw = getVal('dm-keyword-input').toUpperCase();
+  if (!kw) return;
+  if (!state.dmKeywords) state.dmKeywords = [];
+  if (!state.dmKeywords.includes(kw)) state.dmKeywords.push(kw);
+  setVal('dm-keyword-input', '');
+  renderDmKeywords();
+}
+
+function renderDmKeywords() {
+  const el = document.getElementById('dm-keyword-list');
+  if (!el) return;
+  el.innerHTML = (state.dmKeywords||[]).map(kw => {
+    const hasScript = !!(state.dmScripts||{})[kw];
+    return `<div class="keyword-item ${state.activeDmKw===kw?'active':''}" onclick="showDmScript('${kw}')">
+      <span>${kw}</span>
+      <span class="kw-badge">${hasScript?'✓':'–'}</span>
+    </div>`;
+  }).join('') + `<div class="keyword-item" style="cursor:default;opacity:.5;font-size:12px;color:var(--muted)">Click a keyword to view</div>`;
+}
+
+function showDmScript(kw) {
+  state.activeDmKw = kw;
+  renderDmKeywords();
+  const scripts = (state.dmScripts||{})[kw];
+  const panel = document.getElementById('dm-script-panel');
+  if (!scripts) {
+    panel.innerHTML = `<div class="empty"><div class="icon">💬</div><p>No script for "${kw}" yet.<br>Hit "Generate all scripts" to create it.</p></div>`;
+    return;
+  }
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="font-size:16px;font-weight:700">Scripts for keyword: <span style="color:var(--accent)">${kw}</span></h3>
+      <button class="btn btn-ghost btn-sm" onclick="regenerateDmScript('${kw}')">↺ Regenerate</button>
+    </div>
+    ${['initial','followup','discovery','objection'].map(key => scripts[key] ? `
+      <div class="script-block">
+        <h4>${{initial:'📩 Initial reply',followup:'⏰ Follow-up (24hrs)',discovery:'🔍 Discovery question',objection:'💪 Objection handler'}[key]}</h4>
+        <pre>${scripts[key]}</pre>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${scripts[key].replace(/`/g,"'")}\`).then(()=>toast('Copied!'))">Copy</button>
+      </div>` : '').join('')}`;
+}
+
+async function generateAllDmScripts() {
+  if (!state.dmKeywords || !state.dmKeywords.length) return toast('Add at least one keyword first', 'error');
+  const brand = getBrandContext();
+  setLoading(null, 'dm-spinner', true);
+
+  for (const kw of state.dmKeywords) {
+    const result = await callClaude(`You are a sales conversation specialist for a fitness coaching business.
+
+${brand}
+
+Generate DM scripts for when someone comments or messages the keyword: "${kw}"
+
+Return ONLY valid JSON:
+{
+  "initial": "First reply within minutes — warm, human, not robotic. 2-3 sentences. Acknowledge their interest, make them feel welcomed, ask one open question to start the conversation.",
+  "followup": "Follow-up message if they don't reply after 24hrs — friendly, non-pushy, 1-2 sentences. Gentle reminder with a different angle.",
+  "discovery": "A discovery question to understand their situation before offering the consultation — specific, open-ended, makes them feel heard rather than sold to.",
+  "objection": "Response to the most common objection for this keyword (e.g. 'How much does it cost?' or 'I need to think about it') — confident, empathetic, redirects to value without being pushy."
+}`, 900);
+
+    if (result) {
+      try {
+        const parsed = JSON.parse(result.match(/\{[\s\S]*\}/)[0]);
+        if (!state.dmScripts) state.dmScripts = {};
+        state.dmScripts[kw] = parsed;
+      } catch(e) {}
+    }
+  }
+
+  setLoading(null, 'dm-spinner', false);
+  renderDmKeywords();
+  if (state.dmKeywords[0]) showDmScript(state.dmKeywords[0]);
+  toast('All DM scripts generated ✓', 'success');
+}
+
+async function regenerateDmScript(kw) {
+  if (state.dmScripts) delete state.dmScripts[kw];
+  await generateAllDmScripts();
+}
+
+// ============================================================
+// WHITE-LABEL
+// ============================================================
+function initWhiteLabel() {
+  const wl = JSON.parse(localStorage.getItem('wl_settings') || '{}');
+  setVal('wl-name', wl.name || '');
+  setVal('wl-tagline', wl.tagline || '');
+  setVal('wl-logo', wl.logo || '');
+  if (wl.colour) document.getElementById('wl-colour').value = wl.colour;
+  updateWlPreview();
+  // Wire live preview
+  ['wl-name','wl-tagline','wl-colour'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', updateWlPreview);
+  });
+}
+
+function updateWlPreview() {
+  const name = getVal('wl-name') || 'ContentIQ';
+  const tag = getVal('wl-tagline') || 'AI-powered content creation';
+  const colour = document.getElementById('wl-colour')?.value || '#f97316';
+  setEl('wl-preview-name', name);
+  setEl('wl-preview-tag', tag);
+  document.getElementById('wl-preview-name').style.color = colour;
+}
+
+function saveWhiteLabel() {
+  const wl = {
+    name: getVal('wl-name'),
+    tagline: getVal('wl-tagline'),
+    logo: getVal('wl-logo'),
+    colour: document.getElementById('wl-colour')?.value || '#f97316',
+  };
+  localStorage.setItem('wl_settings', JSON.stringify(wl));
+  applyWhiteLabel(wl);
+  toast('White-label saved ✓', 'success');
+}
+
+function clearWhiteLabel() {
+  localStorage.removeItem('wl_settings');
+  applyWhiteLabel({});
+  setVal('wl-name',''); setVal('wl-tagline',''); setVal('wl-logo','');
+  document.getElementById('wl-colour').value = '#f97316';
+  updateWlPreview();
+  toast('Reset to default');
+}
+
+function applyWhiteLabel(wl) {
+  const name = wl.name || 'ContentIQ';
+  const colour = wl.colour || '#f97316';
+  // Update brand bar
+  const brand = document.querySelector('.sb-brand');
+  if (brand) brand.innerHTML = wl.logo
+    ? `<img src="${wl.logo}" style="height:28px;object-fit:contain">`
+    : `${name.slice(0,-2)}<span>${name.slice(-2)}</span>`;
+  // Update accent colour
+  document.documentElement.style.setProperty('--accent', colour);
+  document.documentElement.style.setProperty('--accent2', colour);
+  // Update page title
+  document.title = name;
+}
+
+function loadWhiteLabel() {
+  const wl = JSON.parse(localStorage.getItem('wl_settings') || '{}');
+  if (wl.name || wl.colour) applyWhiteLabel(wl);
 }
 
 // ============================================================

@@ -4,8 +4,12 @@
 create table if not exists workspaces (
   id uuid primary key default gen_random_uuid(),
   name text not null,
+  settings jsonb default '{}',
   created_at timestamptz default now()
 );
+
+-- Run this if workspaces table already exists:
+-- alter table workspaces add column if not exists settings jsonb default '{}';
 
 create table if not exists brand_docs (
   id uuid primary key default gen_random_uuid(),
