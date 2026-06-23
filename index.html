@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ContentIQ</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs" type="module"></script>
+<script type="module">
+  import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
+  window.pdfjsLib = pdfjsLib;
+</script>
 <style>
 :root{
   --bg:#0f1115;--card:#171b22;--card2:#1e2430;--text:#f4f4f5;--muted:#71717a;
@@ -2234,40 +2240,32 @@ async function processBrandPdf(file) {
   const stateEl = document.getElementById('pdf-upload-state');
   stateEl.innerHTML = `<span class="spinner"></span><p style="font-size:13px;color:var(--muted);margin-top:8px">Reading PDF…</p>`;
 
-  // Read file as base64
-  const base64 = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-
-  // Send to Claude as a document
   try {
-    const res = await fetch('/api/claude', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: [
-          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
-          { type: 'text', text: 'Extract the full text content from this brand document. Return all meaningful text exactly as it appears, preserving the structure. Do not summarise — return the raw content.' }
-        ]}],
-      }),
-    });
-    const data = await res.json();
-    const extracted = data.content?.[0]?.text || '';
-    if (extracted) {
-      document.getElementById('brand-raw').value = extracted;
-      zone.classList.add('has-file');
-      stateEl.innerHTML = `<div style="font-size:20px">✅</div><p style="font-size:13px;color:var(--success);font-weight:600;margin-top:4px">${file.name}</p><p style="font-size:11px;color:var(--muted)">Text extracted — click "Extract & save" below</p>`;
-      toast('PDF read successfully — click Extract & save', 'success');
-    } else {
-      throw new Error('No text extracted');
+    const pdfjs = window.pdfjsLib;
+    if (!pdfjs) throw new Error('PDF reader not loaded yet — please wait a moment and try again');
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = content.items.map(item => item.str).join(' ');
+      fullText += pageText + '\n';
+      stateEl.innerHTML = `<span class="spinner"></span><p style="font-size:13px;color:var(--muted);margin-top:8px">Reading page ${i} of ${pdf.numPages}…</p>`;
     }
+
+    fullText = fullText.trim();
+    if (!fullText) throw new Error('No text found — this PDF may be image-based (scanned). Try copying and pasting the text instead.');
+
+    document.getElementById('brand-raw').value = fullText;
+    zone.classList.add('has-file');
+    stateEl.innerHTML = `<div style="font-size:20px">✅</div><p style="font-size:13px;color:var(--success);font-weight:600;margin-top:4px">${file.name}</p><p style="font-size:11px;color:var(--muted)">${pdf.numPages} pages extracted — click "Extract & save" below</p>`;
+    toast('PDF read — now click Extract & save brand profile', 'success');
   } catch (err) {
-    stateEl.innerHTML = `<div style="font-size:20px">❌</div><p style="font-size:13px;color:var(--danger);margin-top:4px">Could not read PDF — try pasting the text instead</p>`;
+    stateEl.innerHTML = `<div style="font-size:20px">❌</div><p style="font-size:13px;color:var(--danger);margin-top:4px">${err.message}</p>`;
+    toast(err.message, 'error');
   }
 }
 
