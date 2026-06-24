@@ -1915,15 +1915,24 @@ async function generateBulkWeek() {
   setLoading(null, 'bulk-spinner', true);
   document.getElementById('bulk-output').style.display = 'none';
 
-  const result = await callClaude(`You are a social media content strategist.
+  const result = await callClaude(`You are a social media content strategist specialising in the C³ Method (Content → Conversations → Consultations).
 
 ${brand}
 
-Generate 7 social media posts for one week${theme ? ' with the theme: "' + theme + '"' : ''}.
+Generate 7 social media posts for one week${theme ? ' on the theme: "' + theme + '"' : ''}.
 Platform: ${platform}
 
-Distribute: 3 Awareness, 2 Information, 2 Action posts.
-Map them Mon–Sun in that order.
+CRITICAL RULE: Each post must approach the audience's struggle from a completely different angle. No two posts can share the same emotional hook, metaphor, or framing device. Variety is mandatory.
+
+Use EXACTLY these angles — one per day, in order:
+
+Monday (Awareness): THE HIDDEN CAUSE — what is actually blocking them that they haven't identified yet. Not "the plan failed you." Something more specific and surprising.
+Tuesday (Awareness): THE DAILY COST — how this problem shows up in their ordinary day-to-day life (energy, mood, relationships, self-talk), not just on the scales.
+Wednesday (Information): THE MYTH BUSTER — one commonly held belief about fitness/nutrition that is actively making things worse. Teach them something they didn't know.
+Thursday (Action): THE INVITATION — a direct, warm, specific offer to work with you. No hard sell. Paint the picture of what life looks like when this is solved.
+Friday (Awareness): THE IDENTITY ANGLE — who they are becoming vs who they feel stuck being. The gap between the person they want to be and how they feel right now.
+Saturday (Information): THE METHOD — one specific, practical thing that works and why. Educate without overwhelming. Show your expertise.
+Sunday (Action): THE SOCIAL PROOF ANGLE — a results story or transformation moment (real or illustrative) that ends with a direct CTA.
 
 Return ONLY valid JSON:
 {
@@ -1932,13 +1941,13 @@ Return ONLY valid JSON:
       "day": "Monday",
       "stage": "awareness|information|action",
       "topic": "short topic label",
-      "post": "the complete ready-to-publish post — scroll-stopping hook, body, CTA. Short paragraphs. No fluff.",
+      "post": "the complete ready-to-publish post — scroll-stopping hook, body, soft CTA. Short paragraphs. British English. Conversational. No fluff. No generic advice.",
       "visual": "brief image or video idea to pair with this post"
     }
   ]
 }
 
-Make every post specific to this business and audience. British English. No generic advice.`, 4000);
+Each post must feel like it was written for a completely different emotional moment in the reader's week.`, 4000);
 
   setLoading(null, 'bulk-spinner', false);
   if (!result) return;
